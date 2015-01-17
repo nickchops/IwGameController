@@ -1,0 +1,7 @@
+[BILLING]
+androidPublicKey1 <string>	Android Public Key
+androidPublicKey2 <string>	Android Public Key
+androidPublicKey3 <string>	Android Public Key
+androidPublicKey4 <string>	Android Public Key
+androidPublicKey5 <string>	Android Public Key
+
