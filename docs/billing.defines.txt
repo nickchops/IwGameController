@@ -1,2 +1,0 @@
-IW_TRACE_CHANNEL_INAPPBILLING         IwBilling module trace channel
-IW_TRACE_CHANNEL_INAPPBILLING_VERBOSE IwBilling module verbose trace channel
