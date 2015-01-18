@@ -44,15 +44,15 @@ You need the following extensions:
 
 You can either add IwGameController ("the module") and the extensions to
 default paths or keep them in your github project folder and add that to
-your Marmalade serach paths. The later is recommended so that you don't
+your Marmalade search paths. The later is recommended so that you don't
 have to do this every time you install a new Marmalade version and can
 get Github updates easier.
 
 To copy modules to default paths, put IwGameController in
 marmalade-root/modules and the extensions in marmalade-root/extensions.
 
-To add your github root to global search, put the following in your project
-mkb or in marmalade-root/s3e/s3e-default.mkf:
+To add your github root to global search, put the following in
+marmalade-root/s3e/s3e-default.mkf:
 
         options { module_paths="path/to/my/github/projects/root" }
 
@@ -90,64 +90,78 @@ rebuild the Quick binaries. Paths here refer to marmalade-root/quick.
 
         $cfile "path/to/projects/IwGameController/quick/QGameController.h"
 
-4. Edit quick/quickuser.mkf and add the following to the 'files' block so that
-   the wrappers can be built into the Quick binaries::
-
-        ("path/to/projects/IwGameController/quick")
-        QAndroidController.h
-        QAndroidController.cpp
-
-5. In quickuser.mkf, also add IwGameController to the 'subprojects' block:
+2. Edit quick/quickuser.mkf and add the following to the 'subprojects' block:
 
         subprojects
         {
-            IwGameController
+            IwGameController/quick/QGameController
         }
         
-   This allows C++ parts of the actual extension to be built into Quick's
-   binaries.
-   
-5. Run quick/quickuser_tolua.bat to generate Lua bindings.
+   This allows C++ parts of the module to be built into Quick's binaries.
+   Make sure the parent folder of IwGameController is in global paths
+        
+3. Run quick/quickuser_tolua.bat to generate Lua bindings.
 
-6. Rebuild the Quick binaries by running the scripts (build_quick_prebuilt.bat
+4. Rebuild the Quick binaries by running the scripts (build_quick_prebuilt.bat
    etc.)
 
 
 Using the C++ API
 -----------------
 
-*void    IwGameController::StartFrame()*
+The C++ API uses static functions in a namespace. No need to initialise
+classes (done internally); instead you must call Init before other functions.
+
+Type button and axis values are enums:
+
+- IwGameController::Type::eType
+- IwGameController::Button::eButton
+- IwGameController::Axis::eAxis
+
+See IwGameController.h for type/button/axis values and additional functions.
+
+**void    IwGameController::IsAvailable(type)*
+
+- Check controllers are supported on device. Can ask for particular type or
+  leave blank for any type.
+
+**void    IwGameController::Init(type)*
+
+- Initialise system. Must be called before any following functions. By default
+  it uses the current platform's extension, or the "best" (most features/device
+  OEM)available if platform supports many types.
+
+**void    IwGameController::StartFrame()**
 
 - You must call this at the start of each update loop so that the get
   button/axis values are updated
 
-*bool    IwGameController::SelectControllerByPlayer(int player)*
+**bool    IwGameController::SelectControllerByPlayer(int player)**
 
 - Select controller by Player (1-4) to get states for
 
-*int     IwGameController::GetPlayerCount()*
+**int     IwGameController::GetPlayerCount()**
 
 - Get number of players
 
-*bool    IwGameController::GetButtonState(int button)*
+**bool    IwGameController::GetButtonState(int button)**
 
 - Get button state. True is down/pressed, false is up/released.
   Includes direction pad presses. D-pad and sticks can also
   have centre press states.
 
-*float   IwGameController::GetAxisValue(int axis)*
+**float   IwGameController::GetAxisValue(int axis)**
 
 - Get value from -1 to 1 indicating how far stick/pad is pressed along an axis.
   -1 is left/bottom, 0 centered and 1 is right/top.
 
-*void IwGameController::SetPropagateButtonsToKeyboard(bool propagate)*
+**void IwGameController::SetPropagateButtonsToKeyboard(bool propagate)**
 
 - If set true, on controller button presses regular s3eKeyboard events/states
   for the pressed button will still occur. This only affects platforms that
   use the same key events internally for keyboard and controller (eg Android)
   If set false, no s3eKeyboard event will happen. Default is true.
 
-See IwGameController.h for button and axis values and additional functions.
 
 
 Using the Quick API
@@ -157,7 +171,10 @@ Using the Quick API
 project's 'build_temp' folder. This is so that the Hub will regenerate all the
 necessary deployment scripts and include the new extension.
 
-Quick functions behave like their similarly named C++ versions:
+You need to include IwGameController as a subproject so that extension libs get
+deployed.
+
+Quick functions behave like their similarly-named C++ versions:
 
         gameController.isAvailable()
         gameController.init(type)
@@ -176,17 +193,20 @@ See quick/QGameController.h for types, axes and buttons. Use like this:
         gameController.buttonA
         etc
 
-        
-Issues with clashing custom activities
---------------------------------------
+TODO: I'll probably change these to strings "any" "a" "stickLeftX" etc
+since Lua can do fast string compares (copmpares object address).
 
-NB: you can only have one custom activity set like this. If you are already
+
+Issues with clashing custom activities on Android
+-------------------------------------------------
+
+NB: The Android extension (s3eAndroidController) overrides the main Android
+activity. You can only have one custom activity set like this. If already
 using another extensions that requires a custom activity, you will have to
 edit one to inherit and daisy-chain off the other. For example, edit
-IwGameController/source/android/IwGameControllerActivity.java
+s3eAndroidController/source/android/IwGameControllerActivity.java
 so that the activity *imports* and *extends* your other existing activity
-instead of LoaderActivity. Then re-build this extension and then just leave
-the existing activity as the android-custom-activity.
+instead of LoaderActivity. Then re-build the s3eAndroidController extension.
 
 
 ------------------------------------------------------------------------------------------

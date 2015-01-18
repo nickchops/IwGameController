@@ -1,4 +1,4 @@
-#include "QAndroidController.h"
+#include "QGameController.h"
 #include "IwGameController.h"
 #include "QLuaHelpers.h"
 
@@ -7,11 +7,12 @@ using namespace quick;
 namespace gameController {
 
     //---- Callbacks ----
-
-    /*
+    // TODO copied out of s32eAndroidController - needs updating to use generic
+    //IwGameController wrapper callbacks and not specific extension
+    /* 
     int32 onButtonEvent(void* systemData, void* userData)
     {
-        QTrace("androidController.onButtonEvent");
+        QTrace("gameController.onButtonEvent");
         
         IwGameController::ButtonEvent* data = static_cast<IwGameController::ButtonEvent*>(systemData);
 
@@ -52,7 +53,7 @@ namespace gameController {
     
     bool init(int type)
     {
-        return IwGameController::Init((IwGameController::Type::eType)type)
+        return IwGameController::Init((IwGameController::Type::eType)type);
     }
 
     void startFrame()

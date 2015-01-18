@@ -1,0 +1,13 @@
+
+# Simple project to include C++ one plus quick wrapper files
+
+subprojects
+{
+    IwGameController
+}
+
+files
+{
+    QGameController.h
+    QGameController.cpp
+}

@@ -13,14 +13,14 @@ namespace gameController {
 
 enum
 {
-    any = 0,
-    androidAny,
-    androidGeneric,
-    androidOuyaEverywhere,
-    androidAmazon,
-    ios,
-    desktopHid,
-    none
+    typeAny = 0,
+    typeAndroidAny,
+    typeAndroidGeneric,
+    typeAndroidOuyaEverywhere,
+    typeAndroidAmazon,
+    typeIos,
+    typeDesktopHid,
+    typeNone
 };
 
 enum
@@ -31,7 +31,7 @@ enum
     axisStickRightY,
     axisTriggerLeft,
     axisTriggerRight,
-    max
+    axisMax
 };
 
 enum
@@ -53,7 +53,7 @@ enum
     buttonTriggerRight,
     buttonStart,
     buttonSelect,
-    max
+    buttonMax
 };
 
 bool isAvailable();
