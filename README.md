@@ -71,13 +71,10 @@ Add the following to your app project's MKB file:
             android-custom-activity='com.s3eAndroidController.s3eAndroidController'
         }
 
-### Custom activity requirement on Android
+#### Custom activity requirement on Android
 
-The extension requires that a custom main activity is set in your C++ or
-Quick project. This is needed in order to catch key and axis events.
-You must add the following to the deployments section of your MKB::
-
-        android-custom-activity='com.s3eAndroidController.s3eAndroidController'
+Note that we hace to set a custom main activity above.
+This is needed in order to catch key and axis events.
 
 
 Additional setup for Quick only
@@ -120,12 +117,12 @@ Type button and axis values are enums:
 
 See IwGameController.h for type/button/axis values and additional functions.
 
-**void    IwGameController::IsAvailable(type)*
+**void    IwGameController::IsAvailable(type)**
 
 - Check controllers are supported on device. Can ask for particular type or
   leave blank for any type.
 
-**void    IwGameController::Init(type)*
+**void    IwGameController::Init(type)**
 
 - Initialise system. Must be called before any following functions. By default
   it uses the current platform's extension, or the "best" (most features/device
