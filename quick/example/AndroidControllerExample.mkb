@@ -34,7 +34,9 @@ assets
 subprojects
 {
     #Needed so that java libs etc for the controller get packaged
-    s3eAndroidController
+    #Using main mkf, not QGameController.mkf, because its likely directly
+    #on your search path (would need IwGameController/quick/QGameController)
+    IwGameController
 }
 
 deployment

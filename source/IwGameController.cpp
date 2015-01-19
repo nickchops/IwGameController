@@ -10,22 +10,22 @@
 namespace IwGameController
 {
 
-IwGameController*  IwGameController::CurrentGameController = 0;
+IwGameController*  IwGameController::m_CurrentGameController = 0;
 
 IwGameController::IwGameController()
-: Type(Type::NONE)
+: m_Type(Type::NONE)
 {
 }
 
 Type::eType IwGameController::GetType() const
 {
-    return Type;
+    return m_Type;
 }
 
 
 void IwGameController::SetType(Type::eType type)
 {
-    Type = type;
+    m_Type = type;
 }
 
 bool IwGameController::Init()
@@ -50,13 +50,13 @@ void IwGameController::NotifyButtonEvent(CIwGameControllerButtonEvent* data)
 
 IwGameController* IwGameController::Create(Type::eType type)
 {
-    IwGameController::CurrentGameController = 0;
+    IwGameController::m_CurrentGameController = 0;
 
     switch (type)
     {
         case Type::IOS:
             CIwGameControllerIOS::Create();
-            IwGameController::CurrentGameController = IW_GAMECONTROLLER_IOS;
+            IwGameController::m_CurrentGameController = IW_GAMECONTROLLER_IOS;
             IW_GAMECONTROLLER_IOS->SetType(Type::IOS);
             if (!IW_GAMECONTROLLER_IOS->Init())
                 return 0;
@@ -66,7 +66,7 @@ IwGameController* IwGameController::Create(Type::eType type)
         case Type::ANDROID_OUYA_EVERYWHERE:
         case Type::ANDROID_AMAZON:
             CIwGameControllerAndroid::Create();
-            IwGameController::CurrentGameController = IW_GAMECONTROLLER_ANDROID;
+            IwGameController::m_CurrentGameController = IW_GAMECONTROLLER_ANDROID;
             //todo, need to set tpe based on whether type supported  and falling back to generic if not
             IW_GAMECONTROLLER_ANDROID->SetType(type);
             if (!IW_GAMECONTROLLER_ANDROID->Init())
@@ -74,7 +74,7 @@ IwGameController* IwGameController::Create(Type::eType type)
             break;
         case Type::DESKTOP_HID:
             CIwGameControllerDesktopHid::Create();
-            IwGameController::CurrentGameController = IW_GAMECONTROLLER_DESKTOP_HID;
+            IwGameController::m_CurrentGameController = IW_GAMECONTROLLER_DESKTOP_HID;
             IW_GAMECONTROLLER_DESKTOP_HID->SetType(type);
             if (!IW_GAMECONTROLLER_DESKTOP_HID->Init())
                 return 0;
@@ -86,10 +86,10 @@ IwGameController* IwGameController::Create(Type::eType type)
 
 void IwGameController::Destroy()
 {
-    if (IwGameController::CurrentGameController == 0)
+    if (IwGameController::m_CurrentGameController == 0)
         return;
     
-    switch (IwGameController::CurrentGameController->GetType())
+    switch (IwGameController::m_CurrentGameController->GetType())
     {
         case Type::IOS:
             if (IW_GAMECONTROLLER_IOS != 0)
@@ -116,7 +116,7 @@ void IwGameController::Destroy()
             }
             break;
     }
-    IwGameController::CurrentGameController = 0;
+    IwGameController::m_CurrentGameController = 0;
 }
 
 // 

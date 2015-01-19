@@ -25,7 +25,7 @@ namespace IwGameController
     // directly access an IwBilling object... 
     struct Type
     {
-        typedef enum eType
+        enum eType
         {
             ANY,                        // Input only - check for any type available. Use the default type for the platform.
             ANDROID_ANY,                //Input only - use best android controller type available.
@@ -40,7 +40,7 @@ namespace IwGameController
     
     struct Axis
     {
-        typedef enum eAxis
+        enum eAxis
         {
             STICK_LEFT_X,
             STICK_LEFT_Y,
@@ -54,7 +54,7 @@ namespace IwGameController
 
     struct Button
     {
-        typedef enum eButton
+        enum eButton
         {
             A,
             B,
@@ -81,12 +81,12 @@ namespace IwGameController
     EVENTS NOT YET IMPLEMENTED
     Button press/release callback data
     */
-    typedef struct CIwGameControllerButtonEvent
+    struct CIwGameControllerButtonEvent
     {
         int         Button;
         int         Pressed;
         CIwGameControllerButtonEvent();
-    } CIwGameControllerButtonEvent;
+    };
 
     /**
     Button callback
@@ -106,8 +106,8 @@ namespace IwGameController
         IwGameController();
         virtual ~IwGameController() {}
         
-        static IwGameController*    CurrentGameController;
-        Type::eType       Type;
+        static IwGameController*    m_CurrentGameController;
+        Type::eType                 m_Type;
         
         IwGameControllerButtonCallback    ButtonCallback;
         void*                             ButtonCallbackData;
@@ -130,9 +130,9 @@ namespace IwGameController
         Type::eType               GetType() const;
         void                      SetType(Type::eType type);
     
-        static IwGameController*  Create(Type::eType type = Type::eType::ANY);
+        static IwGameController*  Create(Type::eType type = Type::ANY);
         static void               Destroy();
-        static IwGameController*  GetGameController() { return IwGameController::CurrentGameController; }
+        static IwGameController*  GetGameController() { return IwGameController::m_CurrentGameController; }
     };
     
     #define IW_GAMECONTROLLER  (IwGameController::GetGameController())
