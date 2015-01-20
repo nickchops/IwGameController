@@ -94,7 +94,7 @@ function checkControllers(event)
     repeat
         n = n+1
         gotController = gameController.selectControllerByPlayer(n)
-    until gotController or n == gameController.maxPlayers
+    until gotController or n == gameController.getMaxControllers()
         
     if n == 0 then
         playerSelected = "none"

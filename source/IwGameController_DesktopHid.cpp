@@ -90,13 +90,13 @@ bool CIwGameControllerDesktopHid::GetButtonState(Button::eButton button)
             return s3eHidControllerGetButtonDPadLeft();
         case Button::DPAD_RIGHT:
             return s3eHidControllerGetButtonDPadRight();
-        case Button::SHOULDER_LEFT:
-            return s3eHidControllerGetLeftTrigger() >= 0.95; //allow for trigger sensitivity
-        case Button::SHOULDER_RIGHT:
-            return s3eHidControllerGetRightTrigger() >= 0.95;
         case Button::TRIGGER_LEFT:
-            return s3eHidControllerGetButtonLShoulderDown();
+            return s3eHidControllerGetLeftTrigger() >= 0.95; //allow for trigger sensitivity
         case Button::TRIGGER_RIGHT:
+            return s3eHidControllerGetRightTrigger() >= 0.95;
+        case Button::SHOULDER_LEFT:
+            return s3eHidControllerGetButtonLShoulderDown();
+        case Button::SHOULDER_RIGHT:
             return s3eHidControllerGetButtonRShoulderDown();
         case Button::START:
             return s3eHidControllerGetButtonStart();
