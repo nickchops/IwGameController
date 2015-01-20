@@ -4,6 +4,8 @@
 
 #include "IwGameController_Android.h"
 
+#include "IwDebug.h"
+
 namespace IwGameController
 {
 
@@ -29,12 +31,15 @@ CIwGameControllerAndroid* CIwGameControllerAndroid::getInstance()
     return _instance;
 }
 
-bool CIwGameControllerAndroid::Init()
+bool CIwGameControllerAndroid::Init(Type::eType type)
 {
-    if (!IwGameController::Init())
+    if (!IwGameController::Init(type))
         return false;
 
-    //extension init here if needed
+    if (type == Type::ANDROID_OUYA_EVERYWHERE)
+        s3eAndroidControllerSetType(S3E_ANDROIDCONTROLLER_TYPE_OUYA_EVERYWHERE);
+    else if (type == Type::ANDROID_AMAZON)
+        s3eAndroidControllerSetType(S3E_ANDROIDCONTROLLER_TYPE_AMAZON);
 
     return true;
 }
@@ -113,17 +118,17 @@ float CIwGameControllerAndroid::GetAxisValue(Axis::eAxis axis)
     switch (axis)
     {
         case Axis::STICK_LEFT_X:
-            return s3eAndroidControllerGetButtonState(S3E_ANDROID_CONTROLLER_AXIS_STICK_LEFT_X);
+            return s3eAndroidControllerGetAxisValue(S3E_ANDROID_CONTROLLER_AXIS_STICK_LEFT_X);
         case Axis::STICK_LEFT_Y:
-            return s3eAndroidControllerGetButtonState(S3E_ANDROID_CONTROLLER_AXIS_STICK_LEFT_Y);
+            return s3eAndroidControllerGetAxisValue(S3E_ANDROID_CONTROLLER_AXIS_STICK_LEFT_Y);
         case Axis::STICK_RIGHT_X:
-            return s3eAndroidControllerGetButtonState(S3E_ANDROID_CONTROLLER_AXIS_STICK_RIGHT_X);
+            return s3eAndroidControllerGetAxisValue(S3E_ANDROID_CONTROLLER_AXIS_STICK_RIGHT_X);
         case Axis::STICK_RIGHT_Y:
-            return s3eAndroidControllerGetButtonState(S3E_ANDROID_CONTROLLER_AXIS_STICK_RIGHT_X);
+            return s3eAndroidControllerGetAxisValue(S3E_ANDROID_CONTROLLER_AXIS_STICK_RIGHT_X);
         case Axis::TRIGGER_LEFT:
-            return s3eAndroidControllerGetButtonState(S3E_ANDROID_CONTROLLER_AXIS_TRIGGER_LEFT);
+            return s3eAndroidControllerGetAxisValue(S3E_ANDROID_CONTROLLER_AXIS_TRIGGER_LEFT);
         case Axis::TRIGGER_RIGHT:
-            return s3eAndroidControllerGetButtonState(S3E_ANDROID_CONTROLLER_AXIS_TRIGGER_RIGHT);
+            return s3eAndroidControllerGetAxisValue(S3E_ANDROID_CONTROLLER_AXIS_TRIGGER_RIGHT);
         default:
             return false;
     }

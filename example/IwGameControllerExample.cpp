@@ -18,7 +18,9 @@ static IwGameController::Button::eButton g_Buttons[IwGameController::Button::MAX
 	IwGameController::Button::TRIGGER_LEFT,
 	IwGameController::Button::TRIGGER_RIGHT,
 	IwGameController::Button::X,
-	IwGameController::Button::Y };
+	IwGameController::Button::Y,
+    IwGameController::Button::START,
+    IwGameController::Button::SELECT };
 
 static IwGameController::Axis::eAxis g_Axes[IwGameController::Axis::MAX] = {
 	IwGameController::Axis::STICK_LEFT_X,
@@ -175,7 +177,7 @@ int main()
 			y += lineHeight;
 			for (int i = 0; i < IwGameController::Axis::MAX; i++)
 			{
-				if (IwGameController::GetAxisDisplayName(name, g_Axes[i], S3E_TRUE) == S3E_RESULT_ERROR)
+				if (!IwGameController::GetAxisDisplayName(name, g_Axes[i], true))
 					strcpy(name, "error");
 
 				s3eDebugPrintf(x, y, 1, "Axis: %s (%d) = %f", name, g_Axes[i], IwGameController::GetAxisValue(g_Axes[i]));
@@ -192,11 +194,11 @@ int main()
 			y += lineHeight;
 			for (int i = 0; i < IwGameController::Button::MAX; i++)
 			{
-				if (IwGameController::GetButtonDisplayName(name, g_Buttons[i], S3E_TRUE) == S3E_RESULT_ERROR)
+                if (!IwGameController::GetButtonDisplayName(name, g_Buttons[i], true))
 					strcpy(name, "error");
 				
-				s3eDebugPrintf(x, y, 1, "Button: %s (%d) is %s", name, g_Buttons[i], IwGameController::GetButtonState(g_Buttons[i]) ? "down" : "up");
-
+                s3eDebugPrintf(x, y, 1, "Button: %s (%d) is %s", name, g_Buttons[i], IwGameController::GetButtonState(g_Buttons[i]) ? "down" : "up");
+                
 				y += lineHeight;
 			}
 		}

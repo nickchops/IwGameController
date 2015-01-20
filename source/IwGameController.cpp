@@ -22,16 +22,9 @@ Type::eType IwGameController::GetType() const
     return m_Type;
 }
 
-
-void IwGameController::SetType(Type::eType type)
+bool IwGameController::Init(Type::eType type)
 {
     m_Type = type;
-}
-
-bool IwGameController::Init()
-{
-    if (!IsAvailable(IW_GAMECONTROLLER->GetType())) //TODO WTF is this for?
-        return false;
 
     //set event stuff to 0 here. look at iwbilling for info.
 
@@ -57,8 +50,7 @@ IwGameController* IwGameController::Create(Type::eType type)
         case Type::IOS:
             CIwGameControllerIOS::Create();
             IwGameController::m_CurrentGameController = IW_GAMECONTROLLER_IOS;
-            IW_GAMECONTROLLER_IOS->SetType(Type::IOS);
-            if (!IW_GAMECONTROLLER_IOS->Init())
+            if (!IW_GAMECONTROLLER_IOS->Init(type))
                 return 0;
             break;
         case Type::ANDROID_ANY:
@@ -67,16 +59,13 @@ IwGameController* IwGameController::Create(Type::eType type)
         case Type::ANDROID_AMAZON:
             CIwGameControllerAndroid::Create();
             IwGameController::m_CurrentGameController = IW_GAMECONTROLLER_ANDROID;
-            //todo, need to set tpe based on whether type supported  and falling back to generic if not
-            IW_GAMECONTROLLER_ANDROID->SetType(type);
-            if (!IW_GAMECONTROLLER_ANDROID->Init())
+            if (!IW_GAMECONTROLLER_ANDROID->Init(type))
                 return 0;
             break;
         case Type::DESKTOP_HID:
             CIwGameControllerDesktopHid::Create();
             IwGameController::m_CurrentGameController = IW_GAMECONTROLLER_DESKTOP_HID;
-            IW_GAMECONTROLLER_DESKTOP_HID->SetType(type);
-            if (!IW_GAMECONTROLLER_DESKTOP_HID->Init())
+            if (!IW_GAMECONTROLLER_DESKTOP_HID->Init(type))
                 return 0;
             break;
     }
@@ -136,10 +125,10 @@ CIwGameControllerButtonEvent::CIwGameControllerButtonEvent()
 bool IsAvailable(Type::eType type)
 {
     if (type == Type::IOS)
-        return (s3eIOSControllerAvailable() == S3E_TRUE);
+        return s3eIOSControllerAvailable() == S3E_TRUE;
     
-    else if (type == Type::ANDROID_GENERIC)
-        return (s3eAndroidControllerAvailable() == S3E_TRUE);
+    else if (type == Type::ANDROID_GENERIC || type == Type::ANDROID_ANY)
+        return s3eAndroidControllerAvailable() == S3E_TRUE;
     
     else if (type == Type::ANDROID_OUYA_EVERYWHERE)
         return (s3eAndroidControllerAvailable() == S3E_TRUE && s3eAndroidControllerIsTypeSupported(S3E_ANDROIDCONTROLLER_TYPE_OUYA_EVERYWHERE));
@@ -157,21 +146,9 @@ bool IsAvailable(Type::eType type)
         switch (os)
         {
             case S3E_OS_ID_IPHONE:
-                return (s3eIOSControllerAvailable() == S3E_TRUE);
+                return s3eIOSControllerAvailable() == S3E_TRUE;
             case S3E_OS_ID_ANDROID:
-                if (s3eAndroidControllerAvailable() == S3E_FALSE)
-                    return false;
-                else if (type == Type::ANDROID_GENERIC || type == Type::ANDROID_ANY)
-                    return true;
-                else
-                {
-                    if (type == Type::ANDROID_OUYA_EVERYWHERE)
-                        return s3eAndroidControllerIsTypeSupported(S3E_ANDROIDCONTROLLER_TYPE_OUYA_EVERYWHERE);
-                    else if (type == Type::ANDROID_AMAZON)
-                        return s3eAndroidControllerIsTypeSupported(S3E_ANDROIDCONTROLLER_TYPE_AMAZON);
-                    else
-                        return false;
-                }
+                return s3eAndroidControllerAvailable() == S3E_TRUE;
             case S3E_OS_ID_WINDOWS:
             case S3E_OS_ID_OSX:
                 return s3eHidControllerAvailable() == S3E_TRUE;
@@ -282,7 +259,7 @@ bool GetButtonDisplayName(char* dst, Button::eButton button, bool terminateStrin
 {
     const char* const buttons[] = { "A", "B", "X", "Y", "DPadCenter", "DPadUp", "DPadDown", "DPadLeft", "DPadRight", 
                                     "ShoulderLeft", "ShoulderRight", "StickLeft", "StickRight",
-                                    "TriggerLeft", "TriggerRight"};
+                                    "TriggerLeft", "TriggerRight", "Start", "Select" };
     const char* name;
     switch (button)
     {
@@ -330,6 +307,12 @@ bool GetButtonDisplayName(char* dst, Button::eButton button, bool terminateStrin
             break;
         case Button::TRIGGER_RIGHT:
             name = buttons[14];
+            break;
+        case Button::START:
+            name = buttons[15];
+            break;
+        case Button::SELECT:
+            name = buttons[16];
             break;
         default:
             return false;

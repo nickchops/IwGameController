@@ -29,9 +29,9 @@ CIwGameControllerIOS* CIwGameControllerIOS::getInstance()
     return _instance;
 }
 
-bool CIwGameControllerIOS::Init()
+bool CIwGameControllerIOS::Init(Type::eType type)
 {
-    if (!IwGameController::Init())
+    if (!IwGameController::Init(type))
         return false;
 
     //extension init here if needed

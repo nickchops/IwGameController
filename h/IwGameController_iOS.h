@@ -28,7 +28,7 @@ public:
     static void Destroy();
     static CIwGameControllerIOS* getInstance();
 
-    bool                Init();
+    bool                Init(Type::eType type);
     void                Release();
 
     void                StartFrame();

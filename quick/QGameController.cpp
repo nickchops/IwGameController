@@ -48,7 +48,7 @@ namespace gameController {
 
     bool isAvailable()
     {
-        return IwGameController::IsAvailable() == S3E_TRUE;
+        return IwGameController::IsAvailable();
     }
     
     bool init(int type)

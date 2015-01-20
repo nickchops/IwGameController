@@ -9,3 +9,8 @@ subprojects
     iwutil
     iwgamecontroller
 }
+
+deployment
+{
+	android-custom-activity='com.nickchops.s3eAndroidController.s3eAndroidControllerActivity'
+}

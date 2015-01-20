@@ -29,9 +29,9 @@ CIwGameControllerDesktopHid* CIwGameControllerDesktopHid::getInstance()
     return _instance;
 }
 
-bool CIwGameControllerDesktopHid::Init()
+bool CIwGameControllerDesktopHid::Init(Type::eType type)
 {
-    if (!IwGameController::Init())
+    if (!IwGameController::Init(type))
         return false;
 
     //extension init here if needed

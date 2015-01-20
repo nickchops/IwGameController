@@ -140,6 +140,7 @@ lblStickDbgL = director:createLabel({x=10, y=10, w=(appWidth/2)/fontScale, vAlig
 lblStickDbgR = director:createLabel({x=appWidth/2, y=10, w=(appWidth/2)/fontScale, vAlignment="bottom", text="Right Stick: (0.00000,0.00000)", color=color.white, xScale=fontScale, yScale=fontScale})
 
 if gameController.isAvailable() then
+    gameController.init()
     lblSupported.text = "Controller API available"
     system:addEventListener({"update"}, update)
     checkControllers()

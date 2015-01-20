@@ -27,7 +27,7 @@ namespace IwGameController
     {
         enum eType
         {
-            ANY,                        // Input only - check for any type available. Use the default type for the platform.
+            ANY = 0,                        // Input only - check for any type available. Use the default type for the platform.
             ANDROID_ANY,                //Input only - use best android controller type available.
             ANDROID_GENERIC,
             ANDROID_OUYA_EVERYWHERE,
@@ -42,7 +42,7 @@ namespace IwGameController
     {
         enum eAxis
         {
-            STICK_LEFT_X,
+            STICK_LEFT_X = 0,
             STICK_LEFT_Y,
             STICK_RIGHT_X,
             STICK_RIGHT_Y,
@@ -56,7 +56,7 @@ namespace IwGameController
     {
         enum eButton
         {
-            A,
+            A = 0,
             B,
             X,
             Y,
@@ -124,13 +124,12 @@ namespace IwGameController
         void      SetButtonCallback(IwGameControllerButtonCallback callback) { ButtonCallback = callback; }
         void      NotifyButtonEvent(CIwGameControllerButtonEvent* data);
         
-        bool                      Init();
+        bool                      Init(Type::eType type);
         void                      Release();
         
         Type::eType               GetType() const;
-        void                      SetType(Type::eType type);
     
-        static IwGameController*  Create(Type::eType type = Type::ANY);
+        static IwGameController*  Create(Type::eType type);
         static void               Destroy();
         static IwGameController*  GetGameController() { return IwGameController::m_CurrentGameController; }
     };
