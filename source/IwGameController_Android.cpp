@@ -124,7 +124,7 @@ float CIwGameControllerAndroid::GetAxisValue(Axis::eAxis axis)
         case Axis::STICK_RIGHT_X:
             return s3eAndroidControllerGetAxisValue(S3E_ANDROID_CONTROLLER_AXIS_STICK_RIGHT_X);
         case Axis::STICK_RIGHT_Y:
-            return s3eAndroidControllerGetAxisValue(S3E_ANDROID_CONTROLLER_AXIS_STICK_RIGHT_X);
+            return s3eAndroidControllerGetAxisValue(S3E_ANDROID_CONTROLLER_AXIS_STICK_RIGHT_Y);
         case Axis::TRIGGER_LEFT:
             return s3eAndroidControllerGetAxisValue(S3E_ANDROID_CONTROLLER_AXIS_TRIGGER_LEFT);
         case Axis::TRIGGER_RIGHT:
