@@ -5,6 +5,7 @@
 build_*
 **/build_temp/**
 **/data-ram/**
+**/resources-ram/**
 **/build_temp/**
 **/project_*
 **development.icf
