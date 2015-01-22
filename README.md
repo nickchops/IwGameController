@@ -32,7 +32,7 @@ You need the following extensions:
 - https://github.com/nickchops/s3eIOSController
 - https://github.com/nickchops/s3eHidController
 
-### For Quick only
+#### For Quick only
 
 - Marmalade SDK 7.4 or newer is needed for Quick extension improvements.
    
@@ -40,48 +40,29 @@ You need the following extensions:
   https://github.com/nickchops/MarmaladeQuickRebuildScripts Copy those to the
   root *quick* folder in the SDK.
 
-### Setup
 
-You can either add IwGameController ("the module") and the extensions to
+### Add the module and extensions to your Marmalade search path
+
+You can either add IwGameController ("the module") and the extensions above to
 default paths or keep them in your github project folder and add that to
 your Marmalade search paths. The later is recommended so that you don't
 have to do this every time you install a new Marmalade version and can
 get Github updates easier.
-
-To copy modules to default paths, put IwGameController in
-marmalade-root/modules and the extensions in marmalade-root/extensions.
 
 To add your github root to global search, put the following in
 marmalade-root/s3e/s3e-default.mkf:
 
         options { module_paths="path/to/my/github/projects/root" }
 
-        
-## Adding the module to your C++ or Quick project
-
-Add the following to your app project's MKB file:
-
-        subprojects
-        {
-            IwGameController
-        }
-   
-        deployments
-        {
-            android-custom-activity='com.s3eAndroidController.s3eAndroidController'
-        }
-
-#### Custom activity requirement on Android
-
-Note that we hace to set a custom main activity above.
-This is needed in order to catch key and axis events.
+Alternatively, to copy modules to default paths, put IwGameController in
+marmalade-root/modules and the extensions in marmalade-root/extensions.
 
 
 Additional setup for Quick only
 -------------------------------
 
-For Quick, you need to make a few changes to quick config files and then
-rebuild the Quick binaries. Paths here refer to marmalade-root/quick.
+For Quick, you need to make changes to two quick config files and then
+rebuild the Quick binaries. Paths here refer to < marmalade-root >/quick.
 
 1. Edit quick/quickuser_tolua.pkg and add this new line:
 
@@ -94,13 +75,34 @@ rebuild the Quick binaries. Paths here refer to marmalade-root/quick.
             IwGameController/quick/QGameController
         }
         
-   This allows C++ parts of the module to be built into Quick's binaries.
    Make sure the parent folder of IwGameController is in global paths
         
 3. Run quick/quickuser_tolua.bat to generate Lua bindings.
 
 4. Rebuild the Quick binaries by running the scripts (build_quick_prebuilt.bat
    etc.)
+
+
+Add the module to your C++ or Quick app/game project
+----------------------------------------------------
+
+You must add the following to your app project's MKB file:
+
+        subprojects
+        {
+            IwGameController
+        }
+   
+        deployments
+        {
+            android-custom-activity='com.s3eAndroidController.s3eAndroidController'
+        }
+
+
+#### NB: Custom activity requirement on Android!
+
+Note that for Android we have to set a custom main activity as shown above.
+This is needed in order to catch key and axis events.
 
 
 Using the C++ API
@@ -160,7 +162,6 @@ See IwGameController.h for type/button/axis values and additional functions.
   If set false, no s3eKeyboard event will happen. Default is true.
 
 
-
 Using the Quick API
 -------------------
 
@@ -191,7 +192,7 @@ See quick/QGameController.h for types, axes and buttons. Use like this:
         etc
 
 TODO: I'll probably change these to strings "any" "a" "stickLeftX" etc
-since Lua can do fast string compares (copmpares object address).
+since Lua can do fast string compares (compares object addresses).
 
 
 Issues with clashing custom activities on Android
