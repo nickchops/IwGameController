@@ -39,7 +39,7 @@ subprojects
     IwGameController
 }
 
-deployment
+deployments
 {
     #Needed to pick up controls. If already using another custom main activity,
     #you will need to edit one of the extensions to daisy-chain off the other as
