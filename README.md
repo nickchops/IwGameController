@@ -52,7 +52,7 @@ get Github updates easier.
 To add your github root to global search, put the following in
 marmalade-root/s3e/s3e-default.mkf:
 
-        options { module_paths="path/to/my/github/projects/root" }
+        options { module_path="path/to/my/github/projects/root" }
 
 Alternatively, to copy modules to default paths, put IwGameController in
 marmalade-root/modules and the extensions in marmalade-root/extensions.
