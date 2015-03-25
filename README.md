@@ -29,8 +29,11 @@ Requirements and setup for C++ and Quick
 You need the following extensions:
 
 - https://github.com/nickchops/s3eAndroidController
+  - https://github.com/nickchops/s3eAndroidUserActivity (needed by
+    s3eAndroidController, see its readme)
 - https://github.com/nickchops/s3eIOSController
 - https://github.com/nickchops/s3eHidController
+
 
 #### For Quick only
 
