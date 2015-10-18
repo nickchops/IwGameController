@@ -119,12 +119,6 @@ namespace IwGameController
                 if (s3eAndroidControllerGetButtonState(S3E_ANDROID_CONTROLLER_BUTTON_DPAD_UP))
                     return 1.0;
                 break;
-            case Button::DPAD_LEFT:
-                return s3eAndroidControllerGetButtonState(S3E_ANDROID_CONTROLLER_BUTTON_DPAD_LEFT);
-            case Button::DPAD_RIGHT:
-                return s3eAndroidControllerGetButtonState(S3E_ANDROID_CONTROLLER_BUTTON_DPAD_RIGHT);
-            case Button::DPAD_UP:
-                return s3eAndroidControllerGetButtonState(S3E_ANDROID_CONTROLLER_BUTTON_DPAD_UP);
             case Axis::STICK_LEFT_X:
                 return s3eAndroidControllerGetAxisValue(S3E_ANDROID_CONTROLLER_AXIS_STICK_LEFT_X);
             case Axis::STICK_LEFT_Y:

@@ -85,8 +85,14 @@ namespace IwGameController
         };
     };
     
+    // Opaque controller reference
+    typedef struct CIwGameControllerHandle CIwGameControllerHandle;
+
+    typedef void (*IwGameControllerConnectCallback)(void* userdata, CIwGameControllerHandle* data);
+    typedef void (*IwGameControllerDisconnectCallback)(void* userdata, CIwGameControllerHandle* data);
+    typedef void (*IwGameControllerPauseCallback)(void* userdata, CIwGameControllerHandle* data);
+    
     /**
-    EVENTS NOT YET IMPLEMENTED
     Button press/release callback data
     */
     struct CIwGameControllerButtonEvent
@@ -97,15 +103,12 @@ namespace IwGameController
     };
 
     /**
-    Button callback
+    Button press/release callback
     */
     typedef void (*IwGameControllerButtonCallback)(void* userdata, CIwGameControllerButtonEvent* data);
     
-    //TODO: axis callbacks?
+    //TODO: axis callback
     
-    // Opaque controller reference
-    typedef struct CIwControllerHandle CIwControllerHandle;
-
     /**
     Abstract class that is implemented for each extension. Create class of desired type
     directly or use the static Create() function to get default controller class for
@@ -119,17 +122,35 @@ namespace IwGameController
         CIwGameController();
         virtual ~CIwGameController() {}
         
-        Type::eType                       m_Type; // TODO: might move this out to the _Any helper
+        Type::eType                           m_Type; // TODO: might move this out to the _Any helper
         
-        IwGameControllerButtonCallback    m_ButtonCallback;
-        void*                             m_ButtonCallbackData;
+        IwGameControllerConnectCallback       m_ConnectCallback;
+        IwGameControllerDisconnectCallback    m_DisconnectCallback;
+        IwGameControllerPauseCallback         m_PauseCallback;
+        IwGameControllerButtonCallback        m_ButtonCallback;
+        
+        void*                                 m_ConnectCallbackUserdata;
+        void*                                 m_DisconnectCallbackUserdata;
+        void*                                 m_PauseCallbackUserdata;
+        void*                                 m_ButtonCallbackUserdata;
+        
+        void                                  NotifyConnect(CIwGameControllerHandle* data);
+        void                                  NotifyDisconnect(CIwGameControllerHandle* data);
+        void                                  NotifyPause(CIwGameControllerHandle* data);
+        void                                  NotifyButton(CIwGameControllerButtonEvent* data);
         
         //TODO - axis callbacks?
         
     public:
+        void setConnectCallback(IwGameControllerConnectCallback callback, void* userdata)       { m_ConnectCallback = callback; m_ConnectCallbackUserdata = userdata}
+        void setDisconnectCallback(IwGameControllerDisconnectCallback callback, void* userdata) { m_DisconnectCallback = callback; m_DisconnectCallbackUserdata = userdata}
+        void setPauseCallback(IwGameControllerPauseCallback callback, void* userdata)           { m_PauseCallback = callback; m_PauseCallbackUserdata = userdata}
+        void SetButtonCallback(IwGameControllerButtonCallback callback, void* userdata)         { m_ButtonCallback = callback; m_ButtonCallbackUserdata = userdata}
+    
         // Call every frame before querying to make sure states are up to date
         // Does nothing on some platforms
         virtual void      StartFrame() = 0;
+        
         virtual int       GetControllerCount() = 0;
         virtual int       GetMaxControllers() = 0;
         
@@ -141,33 +162,27 @@ namespace IwGameController
         // If the platform does not support player IDs then NULL
         virtual CIwControllerHandle* GetControllerByPlayer(int player) = 0;
         
-        virtual bool      GetButtonState(CIwControllerHandle* handle, Button::eButton button) = 0;
-        
         // Get state (true = pressed/down, false = released/up). You must get a valid handle using GetControllerByIndex
         // or GetControllerByPlayer. Does not check internally for NULL controller etc. Listen for
         // connect/disconnect events to keep handles to valid controllers.
-        // Returns 0.0 for unsupported axis
-        virtual float     GetAxisValue(CIwControllerHandle* handle, Axis::eAxis axis) = 0;
+        virtual bool      GetButtonState(CIwControllerHandle* handle, Button::eButton button) = 0;
         
         // Get position of axis control. Axes are centred at 0.0,
         // with -1.0 left/bottom and +1.0 top/right.
         // Same logic for controllers as GetButtonState
-        virtual bool      IsButtonSupported(CIwControllerHandle* handle, Button::eButton button) = 0;
+        // Returns 0.0 for unsupported axis
+        virtual float     GetAxisValue(CIwControllerHandle* handle, Axis::eAxis axis) = 0;
         
         // Check if keys are supported. Passing NULL for the controller returns whether the OS
         // supports that value at all.
         virtual bool      IsButtonSupported(CIwControllerHandle* handle, Button::eButton button) = 0;
-        virtual bool      IAxisSupported(CIwControllerHandle* handle, Axis::eAxis axis) = 0;
+        virtual bool      IsAxisSupported(CIwControllerHandle* handle, Axis::eAxis axis) = 0;
         
         // Enable/disable forwarding button presses to s3eKeyboard for any keys the device supports that for
         virtual void      SetPropagateButtonsToKeyboard(bool propagate) = 0;
 
         static bool GetButtonDisplayName(char* dst, Button::eButton button, bool terminateString);
         static bool GetAxisDisplayName(char* dst, Axis::eAxis axis, bool terminateString);
-        
-        // Should these be static? - check how billing works....
-        void      SetButtonCallback(IwGameControllerButtonCallback callback) { m_ButtonCallback = callback; }
-        void      NotifyButtonEvent(CIwGameControllerButtonEvent* data);
         
         Type::eType               GetType() const;
     };

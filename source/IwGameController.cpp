@@ -94,27 +94,33 @@ bool CIwGameController::GetButtonDisplayName(char* dst, Button::eButton button, 
 
 bool CIwGameController::GetAxisDisplayName(char* dst, Axis::eAxis axis, bool terminateString)
 {
-    const char* const axes[] = { "StickLeftX", "StickLeftY", "StickRightX", "StickRightX", "TriggerLeft", "TriggerRight" };
+    const char* const axes[] = { "DPadX", "DPadY", "StickLeftX", "StickLeftY", "StickRightX", "StickRightX", "TriggerLeft", "TriggerRight" };
     const char* name;
     switch (axis)
     {
-        case Axis::STICK_LEFT_X:
+        case Axis::DPAD_X:
             name = axes[0];
             break;
-        case Axis::STICK_LEFT_Y:
+        case Axis::DPAD_Y:
             name = axes[1];
             break;
-        case Axis::STICK_RIGHT_X:
+        case Axis::STICK_LEFT_X:
             name = axes[2];
             break;
-        case Axis::STICK_RIGHT_Y:
+        case Axis::STICK_LEFT_Y:
             name = axes[3];
             break;
-        case Axis::TRIGGER_LEFT:
+        case Axis::STICK_RIGHT_X:
             name = axes[4];
             break;
-        case Axis::TRIGGER_RIGHT:
+        case Axis::STICK_RIGHT_Y:
             name = axes[5];
+            break;
+        case Axis::TRIGGER_LEFT:
+            name = axes[6];
+            break;
+        case Axis::TRIGGER_RIGHT:
+            name = axes[7];
             break;
         default:
             return false;
@@ -130,10 +136,29 @@ bool CIwGameController::GetAxisDisplayName(char* dst, Axis::eAxis axis, bool ter
 }
 
 //---------------------------------------------------------------
-void CIwGameController::NotifyButtonEvent(CIwGameControllerButtonEvent* data)
+
+void CIwGameController::NotifyConnect(CIwGameControllerHandle* data)
 {
-    //if (ButtonCallback != 0)
-    //    ButtonCallback(ButtonCallbackData, data);
+    if (m_ConnectCallback)
+        m_ConnectCallback(data, m_ConnectCallbackData)
+}
+
+void CIwGameController::NotifyDisconnect(CIwGameControllerHandle* data)
+{
+    if (m_DisconnectCallback)
+        m_DisconnectCallback(data, m_DisconnectCallbackData)
+}
+
+void CIwGameController::NotifyPause(CIwGameControllerHandle* data)
+{
+    if (m_PauseCallback)
+        m_PauseCallback(data, m_PauseCallbackData)
+}
+
+void CIwGameController::NotifyButton(CIwGameControllerButtonEvent* data);
+{
+    if (m_ButtonCallback)
+        m_ButtonCallback(data, m_ButtonCallbackData)
 }
 
 // Data constructors
@@ -142,16 +167,6 @@ CIwGameControllerButtonEvent::CIwGameControllerButtonEvent()
 : Button(0)
 , Pressed(0)
 {
-}
-
-// Callbacks
-
-//TODO: look up whats going on with userdata in billing
-void SetButtonCallback(IwGameControllerButtonCallback callback/*, void *userdata*/)
-{
-    //if (IW_GAMECONTROLLER == 0)
-    //    return;
-    //IW_GAMECONTROLLER->SetButtonCallback(callback/*, userdata*/);
 }
 
 }   // namespace IwGameController

@@ -6,12 +6,34 @@
 
 namespace IwGameController
 {
+    // internal callback handlers
+    int32 CIwGameControllerIOS::_ConnectCallback(void *systemData, void *userData)
+    {
+        NotifyConnect(systemData);
+        return 1;
+    }
+    
+    int32 CIwGameControllerIOS::_DisconnectCallback(void *systemData, void *userData)
+    {
+        NotifyDisconnect(systemData);
+        return 1;
+    }
+    
+    int32 CIwGameControllerIOS::_PauseCallback(void *systemData, void *userData)
+    {
+        NotifyPause(systemData);
+        return 1;
+    }
+    
+    // Init/term
 
     CIwGameControllerIOS::CIwGameControllerIOS()
     {
         m_Type = Type::IOS;
         
-        //TODO: register for callbacks here. That will init extension if not already inited.
+        s3eIOSControllerRegister(S3E_IOSCONTROLLER_CALLBACK_CONNECTED, _ConnectCallback, 0);
+        s3eIOSControllerRegister(S3E_IOSCONTROLLER_CALLBACK_DISCONNECTED, _DisconnectCallback, 0);
+        s3eIOSControllerRegister(S3E_IOSCONTROLLER_CALLBACK_PAUSE_PRESSED, _PauseCallback, 0);
     }
 
     CIwGameControllerIOS::~CIwGameControllerIOS()
@@ -23,6 +45,22 @@ namespace IwGameController
 
     void CIwGameControllerIOS::StartFrame()
     {
+        if (m_ButtonCallback)
+        {
+            /* Can emulate events via state check...
+            //loop through all controllers
+            {
+                for (int i = 0; i < Button::MAX; i++)
+                {
+                    if (m_ButtonState != GetButtonState((Button::eButton)i))
+                    {
+                        //Construct obj with controller, button and state
+                        NotifyButton(obj)
+                    }
+                }
+            }
+            */
+        }
     }
 
     CIwControllerHandle* CIwGameControllerIOS::GetControllerByIndex(int index)
@@ -162,7 +200,7 @@ namespace IwGameController
     
     }
     
-    bool CIwGameControllerIOS::IAxisSupported(CIwControllerHandle* handle, Axis::eAxis axis)
+    bool CIwGameControllerIOS::IsAxisSupported(CIwControllerHandle* handle, Axis::eAxis axis)
     {
         if (!handle || handle and s3eIOSControllerSupportsBasic((s3eIOSController*)handle))
         {
@@ -187,9 +225,7 @@ namespace IwGameController
         }
         
         return false;
-
     }
-
 
     void CIwGameControllerIOS::SetPropagateButtonsToKeyboard(bool propagate)
     {

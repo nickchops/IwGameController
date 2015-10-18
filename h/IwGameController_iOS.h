@@ -16,17 +16,22 @@ namespace IwGameController {
 class CIwGameControllerIOS : public CIwGameController
 {
     
+private:
+    bool m_ButtonState[Button::MAX] = {false};
+    
 public:
     CIwGameControllerIOS();
     virtual ~CIwGameControllerIOS();
 
-    void                StartFrame();
-    bool                SelectControllerByPlayer(int player);
-    int                 GetControllerCount();
-    int                 GetMaxControllers();
-    bool                GetButtonState(Button::eButton button);
-    float               GetAxisValue(Axis::eAxis axis);
-    void                SetPropagateButtonsToKeyboard(bool propagate);
+    void    StartFrame();
+    bool    SelectControllerByPlayer(int player);
+    int     GetControllerCount();
+    int     GetMaxControllers();
+    bool    GetButtonState(Button::eButton button);
+    float   GetAxisValue(Axis::eAxis axis);
+    bool    IsButtonSupported(CIwControllerHandle* handle, Button::eButton button);
+    bool    IsAxisSupported(CIwControllerHandle* handle, Axis::eAxis axis);
+    void    SetPropagateButtonsToKeyboard(bool propagate);
 };
 
 }   // namespace IwGameController
