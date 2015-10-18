@@ -1,7 +1,10 @@
 #include "s3e.h"
 #include "IwDebug.h"
 #include "IwGameController.h"
+#include "IwGameController_Any.h"
 #include <string.h>
+
+using namespace IwGameController;
 
 static IwGameController::Button::eButton g_Buttons[IwGameController::Button::MAX] = {
 	IwGameController::Button::A,
@@ -34,7 +37,7 @@ static IwGameController::Axis::eAxis g_Axes[IwGameController::Axis::MAX] = {
 //We're displaying keyboard keys as well as controller for comparison.
 
 
-	// Last 5 controller button presses
+// Last 5 controller button presses
 #define NUM_EVENTS_TO_SHOW 5
 static int g_ButtonsPresesed[NUM_EVENTS_TO_SHOW];
 static int g_NumButtons = 0;
@@ -118,10 +121,11 @@ int main()
 	//s3eAndroidControllerRegister(S3E_ANDROIDCONTROLLER_CALLBACK_BUTTON, controllerHandler,  NULL);
     s3eKeyboardRegister(S3E_KEYBOARD_KEY_EVENT, keyHandler, NULL);
 
-	bool gotController = IwGameController::Init();
+	CIwGameController* controller = IwGameController::Create();
 	
 	// Use to disable s3eKeyboard events
-	//if (gotController) IwGameController::SetPropagateButtonsToKeyboard(false);
+	//if (controller)
+	//    controller->SetPropagateButtonsToKeyboard(false);
 
     while (!s3eDeviceCheckQuitRequest())
     {
@@ -137,7 +141,7 @@ int main()
 		int y = 20;
 		char name[128];
 
-		if (!gotController)
+		if (!controller)
 		{
 			s3eDebugPrintf(x, y, 1, "Controller not available");
 			y += lineHeight;
@@ -147,9 +151,9 @@ int main()
 			s3eDebugPrint(x, y, "Please mash controller number 1!", 1);
 			y += lineHeight;
 
-			IwGameController::StartFrame();
+			controller->StartFrame();
 
-			int numControllers = IwGameController::GetPlayerCount();
+			int numControllers = controller->GetPlayerCount();
 
 			s3eDebugPrintf(x, y, 1, "Controllers found: %d", numControllers);
 			y += lineHeight;
@@ -159,9 +163,9 @@ int main()
 			do
 			{
 				n++;
-				gotController = IwGameController::SelectControllerByPlayer(n);
+				gotController = controller->SelectControllerByPlayer(n);
 			}
-			while(!gotController && n < IwGameController::GetMaxControllers());
+			while(!gotController && n < controller->GetMaxControllers());
 			
 			if (gotController)
 				s3eDebugPrintf(x, y, 1, "Using controller for player: %d", n);
@@ -177,10 +181,10 @@ int main()
 			y += lineHeight;
 			for (int i = 0; i < IwGameController::Axis::MAX; i++)
 			{
-				if (!IwGameController::GetAxisDisplayName(name, g_Axes[i], true))
+				if (!CIwGameController::GetAxisDisplayName(name, g_Axes[i], true))
 					strcpy(name, "error");
 
-				s3eDebugPrintf(x, y, 1, "Axis: %s (%d) = %f", name, g_Axes[i], IwGameController::GetAxisValue(g_Axes[i]));
+				s3eDebugPrintf(x, y, 1, "Axis: %s (%d) = %f", name, g_Axes[i], controller->GetAxisValue(g_Axes[i]));
 
 				y += lineHeight;
 			}
@@ -194,10 +198,10 @@ int main()
 			y += lineHeight;
 			for (int i = 0; i < IwGameController::Button::MAX; i++)
 			{
-                if (!IwGameController::GetButtonDisplayName(name, g_Buttons[i], true))
+                if (!CIwGameController::GetButtonDisplayName(name, g_Buttons[i], true))
 					strcpy(name, "error");
 				
-                s3eDebugPrintf(x, y, 1, "Button: %s (%d) is %s", name, g_Buttons[i], IwGameController::GetButtonState(g_Buttons[i]) ? "down" : "up");
+                s3eDebugPrintf(x, y, 1, "Button: %s (%d) is %s", name, g_Buttons[i], controller->GetButtonState(g_Buttons[i]) ? "down" : "up");
                 
 				y += lineHeight;
 			}

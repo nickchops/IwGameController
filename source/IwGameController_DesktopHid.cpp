@@ -9,41 +9,15 @@ namespace IwGameController
 
 // ----------- Init terminate etc --------------
 
-CIwGameControllerDesktopHid* CIwGameControllerDesktopHid::_instance = 0;
-
-void CIwGameControllerDesktopHid::Create()
+CIwGameControllerDesktopHid::CIwGameControllerDesktopHid()
 {
-    if (_instance == 0)
-        _instance = new CIwGameControllerDesktopHid();
-}
-void CIwGameControllerDesktopHid::Destroy()
-{
-    if (_instance != 0)
-    {
-        delete _instance;
-        _instance = 0;
-    }
-}
-CIwGameControllerDesktopHid* CIwGameControllerDesktopHid::getInstance()
-{
-    return _instance;
+    m_Type = Type::DESKTOP_HID;
+    //TODO: register callbacks here will call init
 }
 
-bool CIwGameControllerDesktopHid::Init(Type::eType type)
+CIwGameControllerDesktopHid::~CIwGameControllerDesktopHid()
 {
-    if (!IwGameController::Init(type))
-        return false;
-
-    //extension init here if needed
-
-    return true;
-}
-
-void CIwGameControllerDesktopHid::Release()
-{
-    IwGameController::Release();
-
-    //extension terminate here if appropriate
+    
 }
 
 
@@ -60,7 +34,7 @@ bool CIwGameControllerDesktopHid::SelectControllerByPlayer(int player)
     return player == 1;
 }
 
-int CIwGameControllerDesktopHid::GetPlayerCount()
+int CIwGameControllerDesktopHid::GetControllerCount()
 {
     return 1;
 }

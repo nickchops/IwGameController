@@ -11,36 +11,23 @@
 #include "s3eIOSController.h"
 #include "IwGameController.h"
 
-namespace IwGameController
+namespace IwGameController {
+    
+class CIwGameControllerIOS : public CIwGameController
 {
     
-class CIwGameControllerIOS : public IwGameController
-{
-private:
-    static CIwGameControllerIOS* _instance;
-    CIwGameControllerIOS() {}
-    virtual ~CIwGameControllerIOS() {}
-    CIwGameControllerIOS(const CIwGameControllerIOS &);
-    CIwGameControllerIOS& operator=(const CIwGameControllerIOS &);
-
 public:
-    static void Create();
-    static void Destroy();
-    static CIwGameControllerIOS* getInstance();
-
-    bool                Init(Type::eType type);
-    void                Release();
+    CIwGameControllerIOS();
+    virtual ~CIwGameControllerIOS();
 
     void                StartFrame();
     bool                SelectControllerByPlayer(int player);
-    int                 GetPlayerCount();
+    int                 GetControllerCount();
     int                 GetMaxControllers();
     bool                GetButtonState(Button::eButton button);
     float               GetAxisValue(Axis::eAxis axis);
     void                SetPropagateButtonsToKeyboard(bool propagate);
 };
-
-#define IW_GAMECONTROLLER_IOS (CIwGameControllerIOS::getInstance())
 
 }   // namespace IwGameController
 

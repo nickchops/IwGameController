@@ -20,21 +20,19 @@
 
 namespace IwGameController
 {
-    // TODO: might move these into the class itself if I remove the probably
-    // unnecessary static namespace functions and just have the user
-    // directly access an IwBilling object... 
+    // TODO: might move these all into the class itself
     struct Type
     {
         enum eType
         {
-            ANY = 0,                        // Input only - check for any type available. Use the default type for the platform.
-            ANDROID_ANY,                //Input only - use best android controller type available.
+            ANY = 0,                 // Input only - check for any type available. Use default type for the device.
+            ANDROID_ANY,             //Input only - use best android controller type available.
             ANDROID_GENERIC,
             ANDROID_OUYA_EVERYWHERE,
             ANDROID_AMAZON,
             IOS,
             DESKTOP_HID,
-            NONE                        // Output only - indicates no controller type has been initialised.
+            NONE                     // Output only - indicates no controller type has been initialised. TODO: prob remove this now droppign simgleton style
         };
     };
     
@@ -42,7 +40,9 @@ namespace IwGameController
     {
         enum eAxis
         {
-            STICK_LEFT_X = 0,
+            DPAD_X = 0,
+            DPAD_Y,
+            STICK_LEFT_X
             STICK_LEFT_Y,
             STICK_RIGHT_X,
             STICK_RIGHT_Y,
@@ -73,6 +73,14 @@ namespace IwGameController
             TRIGGER_RIGHT,
             SELECT,
             START,
+            LEFT_STICK_UP,
+            LEFT_STICK_DOWN,
+            LEFT_STICK_LEFT,
+            LEFT_STICK_RIGHT,
+            RIGHT_STICK_UP,
+            RIGHT_STICK_DOWN,
+            RIGHT_STICK_LEFT,
+            RIGHT_STICK_RIGHT,
             MAX
         };
     };
@@ -92,108 +100,78 @@ namespace IwGameController
     Button callback
     */
     typedef void (*IwGameControllerButtonCallback)(void* userdata, CIwGameControllerButtonEvent* data);
+    
+    //TODO: axis callbacks?
+    
+    // Opaque controller reference
+    typedef struct CIwControllerHandle CIwControllerHandle;
 
     /**
-    Abstract class that is implemented for each extension. Do not use the
-    classes directly; use the static namespace functions. Class objects are
-    instantiated and destroyed as needed.
+    Abstract class that is implemented for each extension. Create class of desired type
+    directly or use the static Create() function to get default controller class for
+    current platform.
     */
-    class IwGameController
+    class CIwGameController
     {
     public:
         
     protected:
-        IwGameController();
-        virtual ~IwGameController() {}
+        CIwGameController();
+        virtual ~CIwGameController() {}
         
-        static IwGameController*    m_CurrentGameController;
-        Type::eType                 m_Type;
+        Type::eType                       m_Type; // TODO: might move this out to the _Any helper
         
-        IwGameControllerButtonCallback    ButtonCallback;
-        void*                             ButtonCallbackData;
+        IwGameControllerButtonCallback    m_ButtonCallback;
+        void*                             m_ButtonCallbackData;
+        
+        //TODO - axis callbacks?
         
     public:
+        // Call every frame before querying to make sure states are up to date
+        // Does nothing on some platforms
         virtual void      StartFrame() = 0;
-        virtual bool      SelectControllerByPlayer(int player) = 0;
-        virtual int       GetPlayerCount() = 0;
+        virtual int       GetControllerCount() = 0;
         virtual int       GetMaxControllers() = 0;
-        virtual bool      GetButtonState(Button::eButton button) = 0;
-        virtual float     GetAxisValue(Axis::eAxis axis) = 0;
+        
+        // Get opaque handle to controller. Index can be from 0 to GetControllerCount-1.
+        // Handles are needed to query controller values
+        virtual CIwControllerHandle* GetControllerByIndex(int index) = 0;
+        
+        // As with controller, but by player ID (0,1,2,etc) if supported
+        // If the platform does not support player IDs then NULL
+        virtual CIwControllerHandle* GetControllerByPlayer(int player) = 0;
+        
+        virtual bool      GetButtonState(CIwControllerHandle* handle, Button::eButton button) = 0;
+        
+        // Get state (true = pressed/down, false = released/up). You must get a valid handle using GetControllerByIndex
+        // or GetControllerByPlayer. Does not check internally for NULL controller etc. Listen for
+        // connect/disconnect events to keep handles to valid controllers.
+        // Returns 0.0 for unsupported axis
+        virtual float     GetAxisValue(CIwControllerHandle* handle, Axis::eAxis axis) = 0;
+        
+        // Get position of axis control. Axes are centred at 0.0,
+        // with -1.0 left/bottom and +1.0 top/right.
+        // Same logic for controllers as GetButtonState
+        virtual bool      IsButtonSupported(CIwControllerHandle* handle, Button::eButton button) = 0;
+        
+        // Check if keys are supported. Passing NULL for the controller returns whether the OS
+        // supports that value at all.
+        virtual bool      IsButtonSupported(CIwControllerHandle* handle, Button::eButton button) = 0;
+        virtual bool      IAxisSupported(CIwControllerHandle* handle, Axis::eAxis axis) = 0;
+        
+        // Enable/disable forwarding button presses to s3eKeyboard for any keys the device supports that for
         virtual void      SetPropagateButtonsToKeyboard(bool propagate) = 0;
 
-        void      SetButtonCallback(IwGameControllerButtonCallback callback) { ButtonCallback = callback; }
+        static bool GetButtonDisplayName(char* dst, Button::eButton button, bool terminateString);
+        static bool GetAxisDisplayName(char* dst, Axis::eAxis axis, bool terminateString);
+        
+        // Should these be static? - check how billing works....
+        void      SetButtonCallback(IwGameControllerButtonCallback callback) { m_ButtonCallback = callback; }
         void      NotifyButtonEvent(CIwGameControllerButtonEvent* data);
         
-        bool                      Init(Type::eType type);
-        void                      Release();
-        
         Type::eType               GetType() const;
-    
-        static IwGameController*  Create(Type::eType type);
-        static void               Destroy();
-        static IwGameController*  GetGameController() { return IwGameController::m_CurrentGameController; }
     };
     
-    #define IW_GAMECONTROLLER  (IwGameController::GetGameController())
-
-    /**
-    Check if specified controller type is supported. Does not indicate
-    whether an actual controller is connected.
-    
-    Type::ANY returns true if any extension is supported on the
-    current device.
-    
-    Note that this call will initialise the internal s3e extension used
-    and any memory associated with that, which is only freed on app exit.
-    Typically you just want to call with the default "any" param and then
-    call Init()
-    
-    @return  true if available, false if not.
-    */
-    bool    IsAvailable(Type::eType type = Type::ANY);
-
-    /**
-    Initialises the IwGameController system.
-    
-    Set the controller type (extension) to use or use the best fit for the
-    device via the default.
-    
-    @return  true if it succeeds, false if it fails.
-    */
-    bool    Init(Type::eType type = Type::ANY);
-
-    /**
-    Terminates the IwGameController system.
-    
-    Clears any data/objects used. Cannot be used again until it has been
-    re-created with Init().
-    
-    This will not terminate the s3e extension used internally but will
-    unregister callbacks etc.
-    
-    */
-    void    Terminate();
-    
-    /**
-    Get the current controller type.
-    
-    Returns CONTROLLER_TYPE_NONE if system hasn't been initialised.
-    
-    @return  Current controller type.
-    */
-    Type::eType GetType();
-
-    void                  StartFrame();
-    bool                  SelectControllerByPlayer(int player);
-    int                   GetPlayerCount();
-    int                   GetMaxControllers();
-    bool                  GetButtonState(Button::eButton button);
-    float                 GetAxisValue(Axis::eAxis axis);
-    bool                  GetButtonDisplayName(char* dst, Button::eButton button, bool terminateString=true);
-    bool                  GetAxisDisplayName(char* dst, Axis::eAxis axis, bool terminateString=true);
-    void                  SetPropagateButtonsToKeyboard(bool propagate);
-
-
 }   // namespace IwGameController
 
 #endif

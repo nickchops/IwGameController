@@ -29,17 +29,19 @@ files
     #iwgamecontroller.config.txt
     #iwgamecontroller.defines.txt
 
-    [source]
-    (source)
-    IwGameController.cpp
-    IwGameController_Android.cpp
-    IwGameController_iOS.cpp
-    IwGameController_DesktopHid.cpp
-    
     [h]
     (h)
     IwGameController.h
+    IwGameController_Any.h
     IwGameController_Android.h
     IwGameController_iOS.h
     IwGameController_DesktopHid.h
+    
+    [source]
+    (source)
+    IwGameController.cpp
+    IwGameController_Any.cpp
+    IwGameController_Android.cpp
+    IwGameController_iOS.cpp
+    IwGameController_DesktopHid.cpp
 }

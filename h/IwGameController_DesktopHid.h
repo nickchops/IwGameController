@@ -11,29 +11,17 @@
 #include "s3eHidController.h"
 #include "IwGameController.h"
 
-namespace IwGameController
-{
+namespace IwGameController {
     
-class CIwGameControllerDesktopHid : public IwGameController
+class CIwGameControllerDesktopHid : public CIwGameController
 {
-private:
-    static CIwGameControllerDesktopHid* _instance;
-    CIwGameControllerDesktopHid() {}
-    virtual ~CIwGameControllerDesktopHid() {}
-    CIwGameControllerDesktopHid(const CIwGameControllerDesktopHid &);
-    CIwGameControllerDesktopHid& operator=(const CIwGameControllerDesktopHid &);
-
 public:
-    static void Create();
-    static void Destroy();
-    static CIwGameControllerDesktopHid* getInstance();
-
-    bool                Init(Type::eType type);
-    void                Release();
+    CIwGameControllerDesktopHid();
+    virtual ~CIwGameControllerDesktopHid();
 
     void                StartFrame();
     bool                SelectControllerByPlayer(int player);
-    int                 GetPlayerCount();
+    int                 GetControllerCount();
     int                 GetMaxControllers();
     bool                GetButtonState(Button::eButton button);
     float               GetAxisValue(Axis::eAxis axis);

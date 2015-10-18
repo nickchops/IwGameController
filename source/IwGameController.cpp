@@ -3,263 +3,28 @@
  */
 
 #include "IwGameController.h"
-#include "IwGameController_Android.h"
-#include "IwGameController_iOS.h"
-#include "IwGameController_DesktopHid.h"
 
 namespace IwGameController
 {
 
-IwGameController*  IwGameController::m_CurrentGameController = 0;
+////IwGameController*  IwGameController::m_CurrentGameController = 0;
 
-IwGameController::IwGameController()
+CIwGameController::CIwGameController()
 : m_Type(Type::NONE)
 {
+    //set event stuff to 0 here. look at iwbilling for info.
 }
 
-Type::eType IwGameController::GetType() const
+Type::eType CIwGameController::GetType() const
 {
     return m_Type;
 }
 
-bool IwGameController::Init(Type::eType type)
+bool CIwGameController::GetButtonDisplayName(char* dst, Button::eButton button, bool terminateString)
 {
-    m_Type = type;
-
-    //set event stuff to 0 here. look at iwbilling for info.
-
-    return true;
-}
-
-void IwGameController::Release()
-{
-}
-
-void IwGameController::NotifyButtonEvent(CIwGameControllerButtonEvent* data)
-{
-    if (ButtonCallback != 0)
-        ButtonCallback(ButtonCallbackData, data);
-}
-
-IwGameController* IwGameController::Create(Type::eType type)
-{
-    IwGameController::m_CurrentGameController = 0;
-
-    switch (type)
-    {
-        case Type::IOS:
-            CIwGameControllerIOS::Create();
-            IwGameController::m_CurrentGameController = IW_GAMECONTROLLER_IOS;
-            if (!IW_GAMECONTROLLER_IOS->Init(type))
-                return 0;
-            break;
-        case Type::ANDROID_ANY:
-        case Type::ANDROID_GENERIC:
-        case Type::ANDROID_OUYA_EVERYWHERE:
-        case Type::ANDROID_AMAZON:
-            CIwGameControllerAndroid::Create();
-            IwGameController::m_CurrentGameController = IW_GAMECONTROLLER_ANDROID;
-            if (!IW_GAMECONTROLLER_ANDROID->Init(type))
-                return 0;
-            break;
-        case Type::DESKTOP_HID:
-            CIwGameControllerDesktopHid::Create();
-            IwGameController::m_CurrentGameController = IW_GAMECONTROLLER_DESKTOP_HID;
-            if (!IW_GAMECONTROLLER_DESKTOP_HID->Init(type))
-                return 0;
-            break;
-    }
-
-    return IwGameController::GetGameController();
-}
-
-void IwGameController::Destroy()
-{
-    if (IwGameController::m_CurrentGameController == 0)
-        return;
-    
-    switch (IwGameController::m_CurrentGameController->GetType())
-    {
-        case Type::IOS:
-            if (IW_GAMECONTROLLER_IOS != 0)
-            {
-                IW_GAMECONTROLLER_IOS->Release();
-                CIwGameControllerIOS::Destroy();
-            }
-            break;
-        case Type::ANDROID_ANY:
-        case Type::ANDROID_GENERIC:
-        case Type::ANDROID_OUYA_EVERYWHERE:
-        case Type::ANDROID_AMAZON:
-            if (IW_GAMECONTROLLER_ANDROID != 0)
-            {
-                IW_GAMECONTROLLER_ANDROID->Release();
-                CIwGameControllerAndroid::Destroy();
-            }
-            break;
-        case Type::DESKTOP_HID:
-            if (IW_GAMECONTROLLER_DESKTOP_HID != 0)
-            {
-                IW_GAMECONTROLLER_DESKTOP_HID->Release();
-                CIwGameControllerDesktopHid::Destroy();
-            }
-            break;
-    }
-    IwGameController::m_CurrentGameController = 0;
-}
-
-// 
-// Data constructors
-
-CIwGameControllerButtonEvent::CIwGameControllerButtonEvent()
-: Button(0)
-, Pressed(0)
-{
-}
-
-// ------------------------------------------------------------------------
-//
-//  Static Public API
-//
-
-bool IsAvailable(Type::eType type)
-{
-    if (type == Type::IOS)
-        return s3eIOSControllerAvailable() == S3E_TRUE;
-    
-    else if (type == Type::ANDROID_GENERIC || type == Type::ANDROID_ANY)
-        return s3eAndroidControllerAvailable() == S3E_TRUE;
-    
-    else if (type == Type::ANDROID_OUYA_EVERYWHERE)
-        return (s3eAndroidControllerAvailable() == S3E_TRUE && s3eAndroidControllerIsTypeSupported(S3E_ANDROIDCONTROLLER_TYPE_OUYA_EVERYWHERE));
-    
-    else if (type == Type::ANDROID_AMAZON)
-        return (s3eAndroidControllerAvailable() == S3E_TRUE && s3eAndroidControllerIsTypeSupported(S3E_ANDROIDCONTROLLER_TYPE_AMAZON));
-    
-    else if (type == Type::DESKTOP_HID)
-        return s3eHidControllerAvailable() == S3E_TRUE;
-    
-    else if (type == Type::ANY)
-    {
-        int os = s3eDeviceGetInt(S3E_DEVICE_OS);
-    
-        switch (os)
-        {
-            case S3E_OS_ID_IPHONE:
-                return s3eIOSControllerAvailable() == S3E_TRUE;
-            case S3E_OS_ID_ANDROID:
-                return s3eAndroidControllerAvailable() == S3E_TRUE;
-            case S3E_OS_ID_WINDOWS:
-            case S3E_OS_ID_OSX:
-                return s3eHidControllerAvailable() == S3E_TRUE;
-            default:
-                return false;
-        }
-    }
-    else
-        return false;
-}
-
-
-bool Init(Type::eType type)
-{
-    if (type == Type::ANY)
-    {
-        int os = s3eDeviceGetInt(S3E_DEVICE_OS);
-    
-        switch (os)
-        {
-            case S3E_OS_ID_IPHONE:
-                type = Type::IOS;
-                break;
-            case S3E_OS_ID_ANDROID:
-                type = Type::ANDROID_ANY;
-                break;
-            case S3E_OS_ID_WINDOWS:
-            case S3E_OS_ID_OSX:
-                type = Type::DESKTOP_HID;
-                break;
-            default:
-                return false;
-        }
-    }
-    
-    if (!IsAvailable(type))
-        return false;
-    
-    return IwGameController::Create(type) != 0;
-}
-
-void Terminate()
-{
-    IwGameController::Destroy();
-}
-
-Type::eType GetType()
-{
-    return IW_GAMECONTROLLER->GetType();
-}
-
-// Callbacks
-
-//TODO: look up whats going on with userdata in billing
-void SetButtonCallback(IwGameControllerButtonCallback callback/*, void *userdata*/)
-{
-    if (IW_GAMECONTROLLER == 0)
-        return;
-    IW_GAMECONTROLLER->SetButtonCallback(callback/*, userdata*/);
-}
-
-// public functions
-        
-void StartFrame()
-{
-    if (IW_GAMECONTROLLER != 0)
-        IW_GAMECONTROLLER->StartFrame();
-}
-
-bool SelectControllerByPlayer(int player)
-{
-    if (IW_GAMECONTROLLER == 0)
-        return false;
-    return IW_GAMECONTROLLER->SelectControllerByPlayer(player);
-}
-
-//TODO: rename this to controller count
-int GetPlayerCount()
-{
-    if (IW_GAMECONTROLLER == 0)
-        return 0;
-    return IW_GAMECONTROLLER->GetPlayerCount();
-}
-
-int GetMaxControllers()
-{
-    if (IW_GAMECONTROLLER == 0)
-        return 0;
-    return IW_GAMECONTROLLER->GetMaxControllers();
-}
-
-
-bool GetButtonState(Button::eButton button)
-{
-    if (IW_GAMECONTROLLER == 0)
-        return false;
-    return IW_GAMECONTROLLER->GetButtonState(button);
-}
-
-float GetAxisValue(Axis::eAxis axis)
-{
-    if (IW_GAMECONTROLLER == 0)
-        return false;
-    return IW_GAMECONTROLLER->GetAxisValue(axis);
-}
-
-bool GetButtonDisplayName(char* dst, Button::eButton button, bool terminateString)
-{
-    const char* const buttons[] = { "A", "B", "X", "Y", "DPadCenter", "DPadUp", "DPadDown", "DPadLeft", "DPadRight", 
-                                    "ShoulderLeft", "ShoulderRight", "StickLeft", "StickRight",
-                                    "TriggerLeft", "TriggerRight", "Start", "Select" };
+    const char* const buttons[] = { "A", "B", "X", "Y", "DPadCenter", "DPadUp", "DPadDown", "DPadLeft", "DPadRight",
+        "ShoulderLeft", "ShoulderRight", "StickLeft", "StickRight",
+        "TriggerLeft", "TriggerRight", "Start", "Select" };
     const char* name;
     switch (button)
     {
@@ -324,10 +89,10 @@ bool GetButtonDisplayName(char* dst, Button::eButton button, bool terminateStrin
     
     strncpy(dst, name, length);
     
-	return true;
+    return true;
 }
 
-bool GetAxisDisplayName(char* dst, Axis::eAxis axis, bool terminateString)
+bool CIwGameController::GetAxisDisplayName(char* dst, Axis::eAxis axis, bool terminateString)
 {
     const char* const axes[] = { "StickLeftX", "StickLeftY", "StickRightX", "StickRightX", "TriggerLeft", "TriggerRight" };
     const char* name;
@@ -361,14 +126,32 @@ bool GetAxisDisplayName(char* dst, Axis::eAxis axis, bool terminateString)
     
     strncpy(dst, name, length);
     
-	return true;
+    return true;
 }
 
-void SetPropagateButtonsToKeyboard(bool propagate)
+//---------------------------------------------------------------
+void CIwGameController::NotifyButtonEvent(CIwGameControllerButtonEvent* data)
 {
-    if (IW_GAMECONTROLLER == 0)
-        return;
-    IW_GAMECONTROLLER->SetPropagateButtonsToKeyboard(propagate);
+    //if (ButtonCallback != 0)
+    //    ButtonCallback(ButtonCallbackData, data);
+}
+
+// Data constructors
+
+CIwGameControllerButtonEvent::CIwGameControllerButtonEvent()
+: Button(0)
+, Pressed(0)
+{
+}
+
+// Callbacks
+
+//TODO: look up whats going on with userdata in billing
+void SetButtonCallback(IwGameControllerButtonCallback callback/*, void *userdata*/)
+{
+    //if (IW_GAMECONTROLLER == 0)
+    //    return;
+    //IW_GAMECONTROLLER->SetButtonCallback(callback/*, userdata*/);
 }
 
 }   // namespace IwGameController

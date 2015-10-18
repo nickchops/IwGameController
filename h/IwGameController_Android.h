@@ -11,36 +11,22 @@
 #include "s3eAndroidController.h"
 #include "IwGameController.h"
 
-namespace IwGameController
-{
+namespace IwGameController {
     
-class CIwGameControllerAndroid : public IwGameController
+class CIwGameControllerAndroid : public CIwGameController
 {
-private:
-    static CIwGameControllerAndroid* _instance;
-    CIwGameControllerAndroid() {}
-    virtual ~CIwGameControllerAndroid() {}
-    CIwGameControllerAndroid(const CIwGameControllerAndroid &);
-    CIwGameControllerAndroid& operator=(const CIwGameControllerAndroid &);
-
 public:
-    static void Create();
-    static void Destroy();
-    static CIwGameControllerAndroid* getInstance();
-
-    bool                Init(Type::eType type);
-    void                Release();
+    CIwGameControllerAndroid(Type::eType type);
+    virtual ~CIwGameControllerAndroid();
 
     void                StartFrame();
     bool                SelectControllerByPlayer(int player);
-    int                 GetPlayerCount();
+    int                 GetControllerCount();
     int                 GetMaxControllers();
     bool                GetButtonState(Button::eButton button);
     float               GetAxisValue(Axis::eAxis axis);
     void                SetPropagateButtonsToKeyboard(bool propagate);
 };
-
-#define IW_GAMECONTROLLER_ANDROID (CIwGameControllerAndroid::getInstance())
 
 }   // namespace IwGameController
 
