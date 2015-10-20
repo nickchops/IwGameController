@@ -12,12 +12,14 @@ namespace IwGameController
     // ----------- Init terminate etc --------------
 
     CIwGameControllerAndroid::CIwGameControllerAndroid(Type::eType type)
-    {
+	{
         if (type == Type::ANDROID_OUYA_EVERYWHERE)
             s3eAndroidControllerSetType(S3E_ANDROIDCONTROLLER_TYPE_OUYA_EVERYWHERE);
         else if (type == Type::ANDROID_AMAZON)
             s3eAndroidControllerSetType(S3E_ANDROIDCONTROLLER_TYPE_AMAZON);
         
+		s3eAndroidControllerSetPropagateButtonsToKeyboard(true); // the default, but in case its been changed previously
+
         //TODO: register for callbacks here. That will init extension if not already inited.
     }
 
@@ -33,13 +35,14 @@ namespace IwGameController
         s3eAndroidControllerStartFrame();
     }
         
-    CIwControllerHandle* CIwGameControllerAndroid::GetControllerByIndex(int index)
+    CIwGameControllerHandle* CIwGameControllerAndroid::GetControllerByIndex(int index)
     {
-        return s3eIOSControllerGetController(index);
+		//TODO: create/access controller handle
+		return NULL;
     }
 
     
-    CIwControllerHandle* CIwGameControllerAndroid::GetControllerByPlayer(int player)
+    CIwGameControllerHandle* CIwGameControllerAndroid::GetControllerByPlayer(int player)
     {
         if (s3eAndroidControllerSelectControllerByPlayer(player) == false)
             return NULL;
@@ -57,10 +60,37 @@ namespace IwGameController
     {
         return S3E_ANDROID_CONTROLLER_MAX_PLAYERS;
     }
+
+	int CIwGameControllerAndroid::GetProperty(CIwGameControllerHandle* handle, Property::eProperty prop)
+	{
+		switch (prop)
+		{
+		case Property::PROPAGATE_BUTTONS_TO_KEYBOARD:
+			return s3eAndroidControllerGetPropagateButtonsToKeyboard() ? 1 : 0;
+		default:
+			return -1;
+		}
+	}
+
+	void CIwGameControllerAndroid::SetProperty(CIwGameControllerHandle* handle, Property::eProperty prop, int value)
+	{
+		switch (prop)
+		{
+		case Property::PROPAGATE_BUTTONS_TO_KEYBOARD:
+			s3eAndroidControllerSetPropagateButtonsToKeyboard(value == 1 ? true : false);
+		default:
+			break;
+		}
+	}
+
+	ControllerType::eControllerType CIwGameControllerAndroid::GetControllerType(CIwGameControllerHandle* handle)
+	{
+		return ControllerType::UNKNOWN;
+	}
     
     //TODO: for keys that have only button or axis, map to the other type, e.g. dpad button -> axis
 
-    bool CIwGameControllerAndroid::GetButtonState(CIwControllerHandle* handle, Button::eButton button)
+    bool CIwGameControllerAndroid::GetButtonState(CIwGameControllerHandle* handle, Button::eButton button)
     {
         //TODO: use handle to switch controller used. For now just always use controller one
         // or whatver GetControllerByPlayer recently set
@@ -103,7 +133,7 @@ namespace IwGameController
         }
     }
 
-    float CIwGameControllerAndroid::GetAxisValue(CIwControllerHandle* handle, Axis::eAxis axis)
+    float CIwGameControllerAndroid::GetAxisValue(CIwGameControllerHandle* handle, Axis::eAxis axis)
     {
         switch (axis)
         {
@@ -115,9 +145,9 @@ namespace IwGameController
                 break;
             case Axis::DPAD_Y:
                 if (s3eAndroidControllerGetButtonState(S3E_ANDROID_CONTROLLER_BUTTON_DPAD_DOWN))
-                    return -1.0;
-                if (s3eAndroidControllerGetButtonState(S3E_ANDROID_CONTROLLER_BUTTON_DPAD_UP))
                     return 1.0;
+                if (s3eAndroidControllerGetButtonState(S3E_ANDROID_CONTROLLER_BUTTON_DPAD_UP))
+                    return -1.0;
                 break;
             case Axis::STICK_LEFT_X:
                 return s3eAndroidControllerGetAxisValue(S3E_ANDROID_CONTROLLER_AXIS_STICK_LEFT_X);
@@ -132,11 +162,13 @@ namespace IwGameController
             case Axis::TRIGGER_RIGHT:
                 return s3eAndroidControllerGetAxisValue(S3E_ANDROID_CONTROLLER_AXIS_TRIGGER_RIGHT);
             default:
-                return 0.0;
+				break;
         }
+
+		return 0.0;
     }
 
-    bool CIwGameControllerAndroid::IsButtonSupported(CIwControllerHandle* handle, Button::eButton button)
+    bool CIwGameControllerAndroid::IsButtonSupported(CIwGameControllerHandle* handle, Button::eButton button)
     {
         switch (button)
         {
@@ -161,7 +193,7 @@ namespace IwGameController
         return false;
     }
     
-    bool CIwGameControllerAndroid::IsAxisSupported(CIwControllerHandle* handle, Axis::eAxis axis)
+    bool CIwGameControllerAndroid::IsAxisSupported(CIwGameControllerHandle* handle, Axis::eAxis axis)
     {
         switch (axis)
         {
@@ -177,11 +209,6 @@ namespace IwGameController
         }
         
         return false;
-    }
-
-    void CIwGameControllerAndroid::SetPropagateButtonsToKeyboard(bool propagate)
-    {
-        return s3eAndroidControllerSetPropagateButtonsToKeyboard(propagate);
     }
 
 }   // namespace IwGameController

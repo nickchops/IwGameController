@@ -29,14 +29,22 @@ namespace IwGameController
         s3eHidControllerUpdate();
     }
 
-    bool CIwGameControllerDesktopHid::SelectControllerByPlayer(int player)
-    {
-        return player == 1;
-    }
+	CIwGameControllerHandle* CIwGameControllerDesktopHid::GetControllerByIndex(int index)
+	{
+		return NULL;
+	}
+
+	CIwGameControllerHandle* CIwGameControllerDesktopHid::GetControllerByPlayer(int player)
+	{
+		return NULL;
+	}
 
     int CIwGameControllerDesktopHid::GetControllerCount()
     {
-        return 1;
+		if (s3eHidControllerIsConnected())
+			return 1;
+		else
+			return 0;
     }
 
     int CIwGameControllerDesktopHid::GetMaxControllers()
@@ -44,8 +52,25 @@ namespace IwGameController
         return 1;
     }
 
-    bool CIwGameControllerDesktopHid::GetButtonState(Button::eButton button)
+
+	int CIwGameControllerDesktopHid::GetProperty(CIwGameControllerHandle* handle, Property::eProperty prop)
+	{
+		return -1;
+	}
+
+	void CIwGameControllerDesktopHid::SetProperty(CIwGameControllerHandle* handle, Property::eProperty prop, int value)
+	{
+	}
+
+	ControllerType::eControllerType CIwGameControllerDesktopHid::GetControllerType(CIwGameControllerHandle* handle)
+	{
+		return ControllerType::UNKNOWN;
+	}
+
+	bool CIwGameControllerDesktopHid::GetButtonState(CIwGameControllerHandle* handle, Button::eButton button)
     {
+		// Currently only supports one controller. handle is ignored.
+
         switch (button)
         {
             case Button::A:
@@ -72,6 +97,10 @@ namespace IwGameController
                 return s3eHidControllerGetButtonLShoulderDown();
             case Button::SHOULDER_RIGHT:
                 return s3eHidControllerGetButtonRShoulderDown();
+            case Button::STICK_LEFT:
+                return s3eHidControllerGetButtonStick1();
+            case Button::STICK_RIGHT:
+                return s3eHidControllerGetButtonStick2();
             case Button::START:
                 return s3eHidControllerGetButtonStart();
             case Button::SELECT:
@@ -81,8 +110,10 @@ namespace IwGameController
         }
     }
 
-    float CIwGameControllerDesktopHid::GetAxisValue(Axis::eAxis axis)
-    {
+	float CIwGameControllerDesktopHid::GetAxisValue(CIwGameControllerHandle* handle, Axis::eAxis axis)
+	{
+		// Currently only supports one controller. handle is ignored.
+
         switch (axis)
         {
             case Axis::DPAD_X:
@@ -93,9 +124,9 @@ namespace IwGameController
                 break;
             case Axis::DPAD_Y:
                 if (s3eHidControllerGetButtonDPadDown())
-                    return -1.0;
-                if (s3eHidControllerGetButtonDPadUp())
                     return 1.0;
+                if (s3eHidControllerGetButtonDPadUp())
+                    return -1.0;
                 break;
             case Axis::STICK_LEFT_X:
                 return s3eHidControllerGetStick1XAxis();
@@ -110,11 +141,13 @@ namespace IwGameController
             case Axis::TRIGGER_RIGHT:
                 return s3eHidControllerGetRightTrigger();
             default:
-                return false;
+				break;
         }
+
+		return false;
     }
 
-    bool CIwGameControllerAndroid::IsButtonSupported(CIwControllerHandle* handle, Button::eButton button)
+	bool CIwGameControllerDesktopHid::IsButtonSupported(CIwGameControllerHandle* handle, Button::eButton button)
     {
         switch (button)
         {
@@ -127,6 +160,8 @@ namespace IwGameController
             case Button::DPAD_UP:
             case Button::SHOULDER_LEFT:
             case Button::SHOULDER_RIGHT:
+            case Button::STICK_LEFT:
+            case Button::STICK_RIGHT:
             case Button::TRIGGER_LEFT:
             case Button::TRIGGER_RIGHT:
             case Button::X:
@@ -139,7 +174,7 @@ namespace IwGameController
         return false;
     }
     
-    bool CIwGameControllerAndroid::IsAxisSupported(CIwControllerHandle* handle, Axis::eAxis axis)
+	bool CIwGameControllerDesktopHid::IsAxisSupported(CIwGameControllerHandle* handle, Axis::eAxis axis)
     {
         switch (axis)
         {
@@ -155,10 +190,6 @@ namespace IwGameController
         }
         
         return false;
-    }
-
-    void CIwGameControllerDesktopHid::SetPropagateButtonsToKeyboard(bool propagate)
-    {
     }
 
 }   // namespace IwGameController

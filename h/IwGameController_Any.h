@@ -4,6 +4,11 @@
 #ifndef IW_GAMECONTROLLER_ANY_H
 #define IW_GAMECONTROLLER_ANY_H
 
+#include "IwGameController.h"
+#include "IwGameController_Android.h"
+#include "IwGameController_iOS.h"
+#include "IwGameController_DesktopHid.h"
+
 #include <string>
 #include "s3e.h"
 

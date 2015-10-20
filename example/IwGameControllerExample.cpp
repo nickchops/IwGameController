@@ -117,11 +117,12 @@ int main()
     int fontScale = scale > 1 ? scale-1 : 1;
     s3eDebugSetInt(S3E_DEBUG_FONT_SCALE, fontScale);
 
-    //TODO: use IwGameController equivalent here
+    //TODO: use IwGameController equivalents here
 	//s3eAndroidControllerRegister(S3E_ANDROIDCONTROLLER_CALLBACK_BUTTON, controllerHandler,  NULL);
     s3eKeyboardRegister(S3E_KEYBOARD_KEY_EVENT, keyHandler, NULL);
 
 	CIwGameController* controller = IwGameController::Create();
+	CIwGameControllerHandle* controllerHandle = NULL;
 	
 	// Use to disable s3eKeyboard events
 	//if (controller)
@@ -143,7 +144,7 @@ int main()
 
 		if (!controller)
 		{
-			s3eDebugPrintf(x, y, 1, "Controller not available");
+			s3eDebugPrintf(x, y, 1, "No controller extension available :(");
 			y += lineHeight;
 		}
 		else
@@ -153,24 +154,24 @@ int main()
 
 			controller->StartFrame();
 
-			int numControllers = controller->GetPlayerCount();
+			int numControllers = controller->GetControllerCount();
 
 			s3eDebugPrintf(x, y, 1, "Controllers found: %d", numControllers);
 			y += lineHeight;
 
-			bool gotController = false;
+            // Realistically you wouldn't do this controller discovery on every loop!
 			int n = 0;
-			do
+			while (!controllerHandle && n < controller->GetMaxControllers())
 			{
 				n++;
-				gotController = controller->SelectControllerByPlayer(n);
+				controllerHandle = controller->GetControllerByIndex(n);
 			}
-			while(!gotController && n < controller->GetMaxControllers());
 			
-			if (gotController)
-				s3eDebugPrintf(x, y, 1, "Using controller for player: %d", n);
+			if (controllerHandle)
+				s3eDebugPrintf(x, y, 1, "Using controller at index: %d", n);
 			else
-				s3eDebugPrintf(x, y, 1, "Could not get a player to use :(");
+				s3eDebugPrintf(x, y, 1, "Could not get a controller to use :(");
+
 
 			y += lineHeight*2;
 			x = 20;
@@ -181,10 +182,12 @@ int main()
 			y += lineHeight;
 			for (int i = 0; i < IwGameController::Axis::MAX; i++)
 			{
-				if (!CIwGameController::GetAxisDisplayName(name, g_Axes[i], true))
-					strcpy(name, "error");
+                Axis::eAxis axisId = (Axis::eAxis)i;
 
-				s3eDebugPrintf(x, y, 1, "Axis: %s (%d) = %f", name, g_Axes[i], controller->GetAxisValue(g_Axes[i]));
+                if (!CIwGameController::GetAxisDisplayName(name, axisId, true))
+                    strcpy(name, "error");
+
+                s3eDebugPrintf(x, y, 1, "Axis: %s (%d) = %f", name, i, controller->GetAxisValue(controllerHandle, axisId));
 
 				y += lineHeight;
 			}
@@ -198,19 +201,21 @@ int main()
 			y += lineHeight;
 			for (int i = 0; i < IwGameController::Button::MAX; i++)
 			{
-                if (!CIwGameController::GetButtonDisplayName(name, g_Buttons[i], true))
+                Button::eButton buttonId = (Button::eButton)i;
+				
+                if (!CIwGameController::GetButtonDisplayName(name, buttonId, true))
 					strcpy(name, "error");
 				
-                s3eDebugPrintf(x, y, 1, "Button: %s (%d) is %s", name, g_Buttons[i], controller->GetButtonState(g_Buttons[i]) ? "down" : "up");
+                s3eDebugPrintf(x, y, 1, "Button: %s (%d) is %s", name, i, controller->GetButtonState(controllerHandle, buttonId) ? "down" : "up");
                 
 				y += lineHeight;
 			}
 		}
 
         int listStartY;
-        int maxY;
+        //int maxY;
         
-		// ----------------- Controller button states from event/callbacks not polling ---------------------
+		// ----------------- Controller button states from event/callbacks not polling - not yet supported in API ---------------------
         
         /*
         y += lineHeight;

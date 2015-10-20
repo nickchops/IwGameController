@@ -13,24 +13,29 @@
 
 namespace IwGameController {
     
-class CIwGameControllerDesktopHid : public CIwGameController
-{
-public:
-    CIwGameControllerDesktopHid();
-    virtual ~CIwGameControllerDesktopHid();
+	class CIwGameControllerDesktopHid : public CIwGameController
+	{
+	public:
+		CIwGameControllerDesktopHid();
+		virtual ~CIwGameControllerDesktopHid();
 
-    void    StartFrame();
-    bool    SelectControllerByPlayer(int player);
-    int     GetControllerCount();
-    int     GetMaxControllers();
-    bool    GetButtonState(CIwControllerHandle* handle, Button::eButton button);
-    float   GetAxisValue(CIwControllerHandle* handle, Axis::eAxis axis);
-    bool    IsButtonSupported(CIwControllerHandle* handle, Button::eButton button);
-    bool    IsAxisSupported(CIwControllerHandle* handle, Axis::eAxis axis);
-    void    SetPropagateButtonsToKeyboard(bool propagate);
-};
+		int     GetControllerCount();
+		int     GetMaxControllers();
+		int     GetProperty(CIwGameControllerHandle* handle, Property::eProperty prop);
+		void    SetProperty(CIwGameControllerHandle* handle, Property::eProperty prop, int value);
+		ControllerType::eControllerType GetControllerType(CIwGameControllerHandle* handle);
 
-#define IW_GAMECONTROLLER_DESKTOP_HID (CIwGameControllerDesktopHid::getInstance())
+		CIwGameControllerHandle* GetControllerByIndex(int index);
+		CIwGameControllerHandle* GetControllerByPlayer(int player);
+		void    SetPropagateButtonsToKeyboard(bool propagate);
+
+		bool    IsButtonSupported(CIwGameControllerHandle* handle, Button::eButton button);
+		bool    IsAxisSupported(CIwGameControllerHandle* handle, Axis::eAxis axis);
+
+		void    StartFrame();
+		bool    GetButtonState(CIwGameControllerHandle* handle, Button::eButton button);
+		float   GetAxisValue(CIwGameControllerHandle* handle, Axis::eAxis axis);
+	};
 
 }   // namespace IwGameController
 

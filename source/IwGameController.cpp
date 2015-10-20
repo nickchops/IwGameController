@@ -6,167 +6,118 @@
 
 namespace IwGameController
 {
+	IwGameControllerConnectCallback CIwGameController::s_ConnectCallback = NULL;
+	IwGameControllerDisconnectCallback CIwGameController::s_DisconnectCallback = NULL;
+	IwGameControllerPauseCallback CIwGameController::s_PauseCallback = NULL;
+	IwGameControllerButtonCallback CIwGameController::s_ButtonCallback = NULL;
 
-////IwGameController*  IwGameController::m_CurrentGameController = 0;
+	void* CIwGameController::s_ConnectCallbackUserdata = NULL;
+	void* CIwGameController::s_DisconnectCallbackUserdata = NULL;
+	void* CIwGameController::s_PauseCallbackUserdata = NULL;
+	void* CIwGameController::s_ButtonCallbackUserdata = NULL;
 
-CIwGameController::CIwGameController()
-: m_Type(Type::NONE)
-{
-    //set event stuff to 0 here. look at iwbilling for info.
-}
-
-Type::eType CIwGameController::GetType() const
-{
-    return m_Type;
-}
-
-bool CIwGameController::GetButtonDisplayName(char* dst, Button::eButton button, bool terminateString)
-{
-    const char* const buttons[] = { "A", "B", "X", "Y", "DPadCenter", "DPadUp", "DPadDown", "DPadLeft", "DPadRight",
+    const char* const CIwGameController::s_ButtonNames[Button::MAX] = {
+        "A", "B", "X", "Y", "DPadCenter", "DPadUp", "DPadDown", "DPadLeft", "DPadRight",
         "ShoulderLeft", "ShoulderRight", "StickLeft", "StickRight",
-        "TriggerLeft", "TriggerRight", "Start", "Select" };
-    const char* name;
-    switch (button)
-    {
-        case Button::A:
-            name = buttons[0];
-            break;
-        case Button::B:
-            name = buttons[1];
-            break;
-        case Button::X:
-            name = buttons[2];
-            break;
-        case Button::Y:
-            name = buttons[3];
-            break;
-        case Button::DPAD_CENTER:
-            name = buttons[4];
-            break;
-        case Button::DPAD_UP:
-            name = buttons[5];
-            break;
-        case Button::DPAD_DOWN:
-            name = buttons[6];
-            break;
-        case Button::DPAD_LEFT:
-            name = buttons[7];
-            break;
-        case Button::DPAD_RIGHT:
-            name = buttons[8];
-            break;
-        case Button::SHOULDER_LEFT:
-            name = buttons[9];
-            break;
-        case Button::SHOULDER_RIGHT:
-            name = buttons[10];
-            break;
-        case Button::STICK_LEFT:
-            name = buttons[11];
-            break;
-        case Button::STICK_RIGHT:
-            name = buttons[12];
-            break;
-        case Button::TRIGGER_LEFT:
-            name = buttons[13];
-            break;
-        case Button::TRIGGER_RIGHT:
-            name = buttons[14];
-            break;
-        case Button::START:
-            name = buttons[15];
-            break;
-        case Button::SELECT:
-            name = buttons[16];
-            break;
-        default:
+        "TriggerLeft", "TriggerRight", "Start", "Select",
+        "LeftStickUp", "LeftStickDown", "LeftStickLeft", "LeftStickRight",
+        "RightStickUp", "RightStickDown", "RightStickLeft", "RightStickRight" };
+
+    const char* const CIwGameController::s_AxisNames[Axis::MAX] = {
+        "DPadX", "DPadY", "StickLeftX", "StickLeftY", "StickRightX", "StickRightY", "TriggerLeft", "TriggerRight" };
+
+	CIwGameController::CIwGameController()
+	: m_Type(Type::NONE)
+	{
+		s_ConnectCallback = NULL;
+		s_DisconnectCallback = NULL;
+		s_PauseCallback = NULL;
+		s_ButtonCallback = NULL;
+
+		s_ConnectCallbackUserdata = NULL;
+		s_DisconnectCallbackUserdata = NULL;
+		s_PauseCallbackUserdata = NULL;
+		s_ButtonCallbackUserdata = NULL;
+	}
+
+	Type::eType CIwGameController::GetType() const
+	{
+		return m_Type;
+	}
+
+	bool CIwGameController::GetButtonDisplayName(char* dst, Button::eButton button, bool terminateString)
+	{
+		const char* name;
+
+        int i = (int)button;
+
+        if (i > sizeof(s_ButtonNames)) // shouldnt happen but check in case we initialise the names wrong
             return false;
-    }
-    
-    int length = strlen(name);
-    if (terminateString)
-        length += 1;
-    
-    strncpy(dst, name, length);
-    
-    return true;
-}
 
-bool CIwGameController::GetAxisDisplayName(char* dst, Axis::eAxis axis, bool terminateString)
-{
-    const char* const axes[] = { "DPadX", "DPadY", "StickLeftX", "StickLeftY", "StickRightX", "StickRightX", "TriggerLeft", "TriggerRight" };
-    const char* name;
-    switch (axis)
-    {
-        case Axis::DPAD_X:
-            name = axes[0];
-            break;
-        case Axis::DPAD_Y:
-            name = axes[1];
-            break;
-        case Axis::STICK_LEFT_X:
-            name = axes[2];
-            break;
-        case Axis::STICK_LEFT_Y:
-            name = axes[3];
-            break;
-        case Axis::STICK_RIGHT_X:
-            name = axes[4];
-            break;
-        case Axis::STICK_RIGHT_Y:
-            name = axes[5];
-            break;
-        case Axis::TRIGGER_LEFT:
-            name = axes[6];
-            break;
-        case Axis::TRIGGER_RIGHT:
-            name = axes[7];
-            break;
-        default:
+        name = s_ButtonNames[i];
+
+		int length = strlen(name);
+
+		if (terminateString)
+			length += 1;
+    
+		strncpy(dst, name, length);
+    
+		return true;
+	}
+
+	bool CIwGameController::GetAxisDisplayName(char* dst, Axis::eAxis axis, bool terminateString)
+	{
+        const char* name;
+
+        int i = (int)axis;
+
+        if (i > sizeof(s_AxisNames)) // shouldnt happen but check in case we initialise the names wrong
             return false;
-    }
+
+        name = s_AxisNames[i];
+		    
+		int length = strlen(name);
+
+		if (terminateString)
+			length += 1;
     
-    int length = strlen(name);
-    if (terminateString)
-        length += 1;
+		strncpy(dst, name, length);
     
-    strncpy(dst, name, length);
-    
-    return true;
-}
+		return true;
+	}
 
-//---------------------------------------------------------------
+	//---------------------------------------------------------------
 
-void CIwGameController::NotifyConnect(CIwGameControllerHandle* data)
-{
-    if (m_ConnectCallback)
-        m_ConnectCallback(data, m_ConnectCallbackData)
-}
+	void CIwGameController::NotifyConnect(CIwGameControllerHandle* data)
+	{
+		if (s_ConnectCallback)
+			s_ConnectCallback(data, s_ConnectCallbackUserdata);
+	}
 
-void CIwGameController::NotifyDisconnect(CIwGameControllerHandle* data)
-{
-    if (m_DisconnectCallback)
-        m_DisconnectCallback(data, m_DisconnectCallbackData)
-}
+	void CIwGameController::NotifyDisconnect(CIwGameControllerHandle* data)
+	{
+		if (s_DisconnectCallback)
+			s_DisconnectCallback(data, s_DisconnectCallbackUserdata);
+	}
 
-void CIwGameController::NotifyPause(CIwGameControllerHandle* data)
-{
-    if (m_PauseCallback)
-        m_PauseCallback(data, m_PauseCallbackData)
-}
+	void CIwGameController::NotifyPause(CIwGameControllerHandle* data)
+	{
+		if (s_PauseCallback)
+			s_PauseCallback(data, s_PauseCallbackUserdata);
+	}
 
-void CIwGameController::NotifyButton(CIwGameControllerButtonEvent* data);
-{
-    if (m_ButtonCallback)
-        m_ButtonCallback(data, m_ButtonCallbackData)
-}
+	void CIwGameController::NotifyButton(CIwGameControllerButtonEvent* data)
+	{
+		if (s_ButtonCallback)
+			s_ButtonCallback(data, s_ButtonCallbackUserdata);
+	}
 
-// Data constructors
+	// Data constructors
 
-CIwGameControllerButtonEvent::CIwGameControllerButtonEvent()
-: Button(0)
-, Pressed(0)
-{
-}
+	CIwGameControllerButtonEvent::CIwGameControllerButtonEvent()
+	: m_Controller(NULL), m_Button(0), m_Pressed(0)
+	{
+	}
 
 }   // namespace IwGameController

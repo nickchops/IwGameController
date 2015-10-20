@@ -13,26 +13,36 @@
 
 namespace IwGameController {
     
-class CIwGameControllerIOS : public CIwGameController
-{
+	class CIwGameControllerIOS : public CIwGameController
+	{
     
-private:
-    bool m_ButtonState[Button::MAX] = {false};
+	private:
+		static bool m_ButtonState[Button::MAX];
+		static int32 _ConnectCallback(void *systemData, void *userData);
+		static int32 _DisconnectCallback(void *systemData, void *userData);
+		static int32 _PauseCallback(void *systemData, void *userData);
     
-public:
-    CIwGameControllerIOS();
-    virtual ~CIwGameControllerIOS();
+	public:
+		CIwGameControllerIOS();
+		virtual ~CIwGameControllerIOS();
 
-    void    StartFrame();
-    bool    SelectControllerByPlayer(int player);
-    int     GetControllerCount();
-    int     GetMaxControllers();
-    bool    GetButtonState(Button::eButton button);
-    float   GetAxisValue(Axis::eAxis axis);
-    bool    IsButtonSupported(CIwControllerHandle* handle, Button::eButton button);
-    bool    IsAxisSupported(CIwControllerHandle* handle, Axis::eAxis axis);
-    void    SetPropagateButtonsToKeyboard(bool propagate);
-};
+		int     GetControllerCount();
+		int     GetMaxControllers();
+		int     GetProperty(CIwGameControllerHandle* handle, Property::eProperty prop);
+		void    SetProperty(CIwGameControllerHandle* handle, Property::eProperty prop, int value);
+		ControllerType::eControllerType GetControllerType(CIwGameControllerHandle* handle);
+
+		CIwGameControllerHandle* GetControllerByIndex(int index);
+		CIwGameControllerHandle* GetControllerByPlayer(int player);
+		void    SetPropagateButtonsToKeyboard(bool propagate);
+	
+		bool    IsButtonSupported(CIwGameControllerHandle* handle, Button::eButton button);
+		bool    IsAxisSupported(CIwGameControllerHandle* handle, Axis::eAxis axis);
+
+		void    StartFrame();
+		bool    GetButtonState(CIwGameControllerHandle* handle, Button::eButton button);
+		float   GetAxisValue(CIwGameControllerHandle* handle, Axis::eAxis axis);
+	};
 
 }   // namespace IwGameController
 
