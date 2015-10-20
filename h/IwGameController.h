@@ -152,9 +152,10 @@ namespace IwGameController
         static const char* const s_ButtonNames[Button::MAX];
         static const char* const s_AxisNames[Axis::MAX];
 
+        virtual ~CIwGameController() {}
+        
     protected:
         CIwGameController();
-        virtual ~CIwGameController() {}
         
         Type::eType                           m_Type; // TODO: might move this out to the _Any helper?
         

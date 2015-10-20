@@ -1,13 +1,14 @@
 #include "QGameController.h"
-#include "IwGameController.h"
+#include "IwGameController_Any.h"
 #include "QLuaHelpers.h"
 
 using namespace quick;
+using namespace IwGameController;
 
 namespace gameController {
 
     //---- Callbacks ----
-    // TODO copied out of s32eAndroidController - needs updating to use generic
+    // TODO copied out of s3eAndroidController - needs updating to use generic
     //IwGameController wrapper callbacks and not specific extension
     /* 
     int32 onButtonEvent(void* systemData, void* userData)
@@ -45,66 +46,121 @@ namespace gameController {
         return 0;
     }
     */
+    
+    CIwGameController* s_controller = NULL;
 
-    bool isAvailable()
+    bool isSupported()
     {
-        return IwGameController::IsAvailable();
+        return IwGameController::IsSupported();
     }
     
     bool init(int type)
     {
-        return IwGameController::Init((IwGameController::Type::eType)type);
+        s_controller = IwGameController::Create((IwGameController::Type::eType)type);
+        
+        if (!s_controller)
+            return false;
+        else
+            return true;
+    }
+    
+    void terminate()
+    {
+        if (s_controller)
+        {
+            delete s_controller;
+            s_controller = NULL;
+        }
     }
 
     void startFrame()
     {
-        IwGameController::StartFrame();
+        if (s_controller)
+            s_controller->StartFrame();
     }
 
-    bool selectControllerByPlayer(int player)
+    int getControllerCount()
     {
-        return IwGameController::SelectControllerByPlayer(player);
-    }
-
-    int getPlayerCount()
-    {
-        return IwGameController::GetPlayerCount();
+        if (s_controller)
+            return s_controller->GetControllerCount();
+        else
+            return 0;
     }
     
     int getMaxControllers()
     {
-        return IwGameController::GetMaxControllers();
+        if (s_controller)
+            s_controller->GetMaxControllers();
+        else
+            return 0;
     }
-
-    bool getButtonState(int button)
+    
+    void* getControllerByIndex(int player)
     {
-        return IwGameController::GetButtonState((IwGameController::Button::eButton)button);
+        return NULL;
     }
-
-    float getAxisValue(int axis)
+    
+    void* getControllerByPlayer(int player)
     {
-        return IwGameController::GetAxisValue((IwGameController::Axis::eAxis)axis);
+        return NULL;
     }
 
-    char* getButtonDisplayName(int button)
+    bool getButtonState(void* handle, int button)
     {
-        char name[20];
-        IwGameController::GetButtonDisplayName(name, (IwGameController::Button::eButton)button, true);
-        return name;
+        if (s_controller)
+            s_controller->GetButtonState((CIwGameControllerHandle*)handle, (IwGameController::Button::eButton)button);
+        else
+            return false;
     }
 
-    char* getAxisDisplayName(int axis)
+    float getAxisValue(void* handle, int axis)
     {
-        char name[20];
-        IwGameController::GetAxisDisplayName(name, (IwGameController::Axis::eAxis)axis, true);
-        return name;
+        if (s_controller)
+            s_controller->GetAxisValue((CIwGameControllerHandle*)handle, (IwGameController::Axis::eAxis)axis);
+        else
+            return 0.0;
     }
 
-    void setPropagateButtonsToKeyboard(bool propagate)
+    const char* getButtonDisplayName(int button)
     {
-        IwGameController::SetPropagateButtonsToKeyboard(propagate);
+        if (button < 0 || button < IwGameController::Button::MAX)
+            return "";
+        
+        return CIwGameController::s_ButtonNames[button];
     }
 
+    const char* getAxisDisplayName(int axis)
+    {
+        if (axis < 0 || axis < IwGameController::Axis::MAX)
+            return "";
+        
+        return CIwGameController::s_AxisNames[axis];
+    }
+    
+    int getProperty(void* handle, char* property)
+    {
+        return 0;
+    }
+    
+    void setProperty(void* handle, char* property, int value)
+    {
+    }
+    
+    int getControllerType(void* handle)
+    {
+        return 0;
+    }
+
+    bool isButtonSupported(void* handle, int button)
+    {
+        return false;
+    }
+    
+    bool isAxisSupported(void* handle, int axis)
+    {
+        return false;
+    }
+    
     void useButtonEvents(bool enabled)
     {
         /*

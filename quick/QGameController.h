@@ -56,17 +56,32 @@ enum
     buttonMax
 };
 
-bool isAvailable();
+enum
+{
+    typeUnknown = 0,
+    typeBasic,
+    typeExtended,
+    typeMicro,
+    typeMax
+};
+
+bool isSupported();
 bool init(int type);
+void terminate();
 void startFrame();
-bool selectControllerByPlayer(int player);
 int getMaxControllers();
-int getPlayerCount();
-bool getButtonState(int button);
-float getAxisValue(int axis);
-char* getButtonDisplayName(int button);
-char* getAxisDisplayName(int axis);
-void setPropagateButtonsToKeyboard(bool propagate);
+int getControllerCount();
+void* getControllerByIndex(int player);
+void* getControllerByPlayer(int player);
+bool getButtonState(void* handle, int button);
+float getAxisValue(void* handle, int axis);
+const char* getButtonDisplayName(int button);
+const char* getAxisDisplayName(int axis);
+int getProperty(void* handle, char* property);
+void setProperty(void* handle, char* property, int value);
+int getControllerType(void* handle);
+bool isButtonSupported(void* handle, int button);
+bool isAxisSupported(void* handle, int axis);
 void useButtonEvents(bool enabled);
 
 }
