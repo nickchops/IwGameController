@@ -19,7 +19,7 @@ namespace IwGameController
     const char* const CIwGameController::s_ButtonNames[Button::MAX] = {
         "A", "B", "X", "Y", "DPadCenter", "DPadUp", "DPadDown", "DPadLeft", "DPadRight",
         "ShoulderLeft", "ShoulderRight", "StickLeft", "StickRight",
-        "TriggerLeft", "TriggerRight", "Start", "Select",
+        "TriggerLeft", "TriggerRight", "Select", "Start",
         "LeftStickUp", "LeftStickDown", "LeftStickLeft", "LeftStickRight",
         "RightStickUp", "RightStickDown", "RightStickLeft", "RightStickRight" };
 
