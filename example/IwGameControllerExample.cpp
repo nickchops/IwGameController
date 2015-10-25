@@ -123,6 +123,7 @@ int main()
 
 	CIwGameController* controller = IwGameController::Create();
 	CIwGameControllerHandle* controllerHandle = NULL;
+    
 	
 	// Use to disable s3eKeyboard events
 	//if (controller)
@@ -160,8 +161,8 @@ int main()
 			y += lineHeight;
 
             // Realistically you wouldn't do this controller discovery on every loop!
-			int n = 0;
-			while (!controllerHandle && n < controller->GetMaxControllers())
+			int n = -1;
+			while (!controllerHandle && n < numControllers)
 			{
 				n++;
 				controllerHandle = controller->GetControllerByIndex(n);
@@ -171,7 +172,8 @@ int main()
 				s3eDebugPrintf(x, y, 1, "Using controller at index: %d", n);
 			else
 				s3eDebugPrintf(x, y, 1, "Could not get a controller to use :(");
-
+            
+            controller->SetProperty(controllerHandle, IwGameController::Property::REPORTS_ABSOLUTE_DPAD_VALUES, true);
 
 			y += lineHeight*2;
 			x = 20;
