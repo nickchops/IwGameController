@@ -78,6 +78,12 @@ function update(event)
     lblStickDbgL.text = string.format("Left Stick: (%.5f,%.5f)", lx, ly)
     lblStickDbgR.text = string.format("Right Stick: (%.5f,%.5f)", rx, ry)
     
+    px = gameController.getAxisValue(controllerHandle, gameController.axisDpadX)
+    py = -gameController.getAxisValue(controllerHandle, gameController.axisDpad)
+    
+    touchPad.point.x = touchPad.pad.w/2*px
+    touchPad.point.y = -touchPad.pad.h/2*py
+    
     btnA:setState(gameController.getButtonState(controllerHandle, gameController.buttonA))
     btnB:setState(gameController.getButtonState(controllerHandle, gameController.buttonB))
     btnX:setState(gameController.getButtonState(controllerHandle, gameController.buttonX))
@@ -238,13 +244,13 @@ triggerRight = director:createRectangle({xAnchor=0.5, yAnchor=0.5,  x=rightPadX-
 
 touchPad = director:createNode({x=appWidth-120, y=appHeight-60})
 
-local touchPadPad = director:createRectangle({xAnchor=0.5, yAnchor=0.5, x=0, y=0, w=80, h=80, color=grey, strokeColor=darkGrey, strokeWidth=2})
-touchPad:addChild(touchPadPad)
+touchPad.pad = director:createRectangle({xAnchor=0.5, yAnchor=0.5, x=0, y=0, w=80, h=80, color=grey, strokeColor=darkGrey, strokeWidth=2})
+touchPad:addChild(touchPad.pad)
 
-touchPad:addChild(director:createRectangle({xAnchor=0.5, yAnchor=0.5, x=0, y=-50, w=touchPadPad.w+10, h=touchPadPad.h+110, color=darkerGrey, strokeWidth=0, zOrder=-1}))
+touchPad:addChild(director:createRectangle({xAnchor=0.5, yAnchor=0.5, x=0, y=-50, w=touchPad.pad.w+10, h=touchPad.pad.h+110, color=darkerGrey, strokeWidth=0, zOrder=-1}))
 
-touchPoint = director:createCircle({xAnchor=0.5, yAnchor=0.5, x=0, y=0, radius=touchPadPad.w/8, color={100,100,100}, strokeWidth=0, zOrder=1})
-touchPad:addChild(touchPoint)
+touchPad.point = director:createCircle({xAnchor=0.5, yAnchor=0.5, x=0, y=0, radius=touchPad.pad.w/8, color={100,100,100}, strokeWidth=0, zOrder=1})
+touchPad:addChild(touchPad.point)
 
 btnLeft:pressButton()
 
