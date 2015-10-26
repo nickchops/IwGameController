@@ -234,6 +234,7 @@ btnX = OnScreenButton.Create({x=btnsX-36, y=topRowY, radius=13, topColor=color.b
 btnY = OnScreenButton.Create({x=btnsX, y=topRowY+13, radius=12, topColor=color.yellow, baseColor={90,90,0}, scale3d=scale3d, depth3d=3.5})
 
 grey = {70,70,70}
+darkishGrey = {55,55,55}
 darkGrey = {50,50,50}
 darkerGrey = {30,30,30}
 
@@ -261,30 +262,32 @@ triggerLeft = director:createRectangle({xAnchor=0.5, yAnchor=0.5,  x=dPadX+10, y
 triggerRight = director:createRectangle({xAnchor=0.5, yAnchor=0.5,  x=rightPadX-10, y=bottomTriggerY, w=80, h=25, color=grey, strokeColor=darkGrey, strokeWidth=2})
 
 touchPad = director:createNode({x=appWidth-120, y=appHeight-60})
+touchPad.xScale=0.8
+touchPad.yScale=0.8
 
 touchPad.pad = director:createRectangle({xAnchor=0.5, yAnchor=0.5, x=0, y=0, w=80, h=80, color=grey, strokeColor=darkGrey, strokeWidth=2})
 touchPad:addChild(touchPad.pad)
 
-touchPad:addChild(director:createRectangle({xAnchor=0.5, yAnchor=0.5, x=0, y=-60, w=touchPad.pad.w+10, h=touchPad.pad.h+130, color=darkerGrey, strokeWidth=0, zOrder=-1}))
+touchPad:addChild(director:createRectangle({xAnchor=0.5, yAnchor=0.5, x=0, y=-70, w=touchPad.pad.w+10, h=touchPad.pad.h+150, color=darkerGrey, strokeWidth=0, zOrder=-1}))
 
 touchPad.point = director:createCircle({xAnchor=0.5, yAnchor=0.5, x=0, y=0, radius=touchPad.pad.w/8, color={100,100,100}, strokeWidth=0, zOrder=1, isVisible=false})
 touchPad:addChild(touchPad.point)
 
-touchPad:addChild(director:createCircle({xAnchor=0.5, yAnchor=0.5, radius=15,
-            x=-touchPad.pad.w/4, y=-touchPad.pad.h/2-20, color=grey, strokeColor=darkGrey, strokeWidth=1}))
-touchPad:addChild(director:createCircle({xAnchor=0.5, yAnchor=0.5, radius=15,
-            x=touchPad.pad.w/4, y=-touchPad.pad.h/2-20, color=grey, strokeColor=darkGrey, strokeWidth=1}))
-touchPad:addChild(director:createCircle({xAnchor=0.5, yAnchor=0.5, radius=15,
-            x=-touchPad.pad.w/4, y=-touchPad.pad.h/2-55, color=grey, strokeColor=darkGrey, strokeWidth=1}))
+touchPad:addChild(director:createCircle({xAnchor=0.5, yAnchor=0.5, radius=13,
+            x=-touchPad.pad.w/4, y=-touchPad.pad.h/2-20, color=darkishGrey, strokeColor=darkGrey, strokeWidth=1}))
+touchPad:addChild(director:createCircle({xAnchor=0.5, yAnchor=0.5, radius=13,
+            x=touchPad.pad.w/4, y=-touchPad.pad.h/2-20, color=darkishGrey, strokeColor=darkGrey, strokeWidth=1}))
+touchPad:addChild(director:createCircle({xAnchor=0.5, yAnchor=0.5, radius=13,
+            x=-touchPad.pad.w/4, y=-touchPad.pad.h/2-55, color=darkishGrey, strokeColor=darkGrey, strokeWidth=1}))
 
-touchPad:addChild(director:createCircle({xAnchor=0.5, yAnchor=0.5, radius=15,
-            x=touchPad.pad.w/4, y=-touchPad.pad.h/2-55, color=grey, strokeColor=darkGrey, strokeWidth=1}))
-touchPad:addChild(director:createRectangle({xAnchor=0, yAnchor=0, h=35, w=32,
-            x=touchPad.pad.w/4-16, y=-touchPad.pad.h/2-90, color=darkGrey, strokeWidth=0, zOrder=1}))
-touchPad:addChild(director:createRectangle({xAnchor=0, yAnchor=0, h=35, w=30,
-            x=touchPad.pad.w/4-15, y=-touchPad.pad.h/2-90, color=grey, strokeWidth=0, zOrder=2}))
-touchPad:addChild(director:createCircle({xAnchor=0.5, yAnchor=0.5, radius=15,
-            x=touchPad.pad.w/4, y=-touchPad.pad.h/2-90, color=grey, strokeColor=darkGrey, strokeWidth=1}))
+touchPad:addChild(director:createCircle({xAnchor=0.5, yAnchor=0.5, radius=13,
+            x=touchPad.pad.w/4, y=-touchPad.pad.h/2-55, color=darkishGrey, strokeColor=darkGrey, strokeWidth=1}))
+touchPad:addChild(director:createRectangle({xAnchor=0, yAnchor=0, h=35, w=28,
+            x=touchPad.pad.w/4-14, y=-touchPad.pad.h/2-90, color=darkGrey, strokeWidth=0, zOrder=1}))
+touchPad:addChild(director:createRectangle({xAnchor=0, yAnchor=0, h=35, w=26,
+            x=touchPad.pad.w/4-13, y=-touchPad.pad.h/2-90, color=darkishGrey, strokeWidth=0, zOrder=2}))
+touchPad:addChild(director:createCircle({xAnchor=0.5, yAnchor=0.5, radius=13,
+            x=touchPad.pad.w/4, y=-touchPad.pad.h/2-90, color=darkishGrey, strokeColor=darkGrey, strokeWidth=1}))
 
 touchPad.playPause = director:createCircle({xAnchor=0.5, yAnchor=0.5, radius=15,
             x=-touchPad.pad.w/4, y=-touchPad.pad.h/2-90, color=grey, strokeColor=darkGrey, strokeWidth=1})
