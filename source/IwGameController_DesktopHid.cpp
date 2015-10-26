@@ -90,9 +90,9 @@ namespace IwGameController
             case Button::DPAD_RIGHT:
                 return s3eHidControllerGetButtonDPadRight();
             case Button::TRIGGER_LEFT:
-                return s3eHidControllerGetLeftTrigger() >= 0.95; //allow for trigger sensitivity
+                return s3eHidControllerGetLeftTrigger() >= 0.15; //allow for trigger sensitivity - TODO: should be settable like sticks below
             case Button::TRIGGER_RIGHT:
-                return s3eHidControllerGetRightTrigger() >= 0.95;
+                return s3eHidControllerGetRightTrigger() >= 0.15;
             case Button::SHOULDER_LEFT:
                 return s3eHidControllerGetButtonLShoulderDown();
             case Button::SHOULDER_RIGHT:
@@ -105,6 +105,22 @@ namespace IwGameController
                 return s3eHidControllerGetButtonStart();
             case Button::SELECT:
                 return s3eHidControllerGetButtonSelect();
+            case Button::LEFT_STICK_UP:
+                return s3eHidControllerGetStick1YAxis() < -0.15; //hard coded - should be settable so game could override, e.g. for sensitivity in user settings menu
+            case Button::LEFT_STICK_DOWN:
+                return s3eHidControllerGetStick1YAxis() > 0.15;
+            case Button::LEFT_STICK_LEFT:
+                return s3eHidControllerGetStick1XAxis() < -0.15;
+            case Button::LEFT_STICK_RIGHT:
+                return s3eHidControllerGetStick1XAxis() > 0.15;
+            case Button::RIGHT_STICK_UP:
+                return s3eHidControllerGetStick2YAxis() < -0.15;
+            case Button::RIGHT_STICK_DOWN:
+                return s3eHidControllerGetStick2YAxis() > 0.15;
+            case Button::RIGHT_STICK_LEFT:
+                return s3eHidControllerGetStick2XAxis() < -0.15;
+            case Button::RIGHT_STICK_RIGHT:
+                return s3eHidControllerGetStick2XAxis() > 0.15;
             default:
                 return false;
         }

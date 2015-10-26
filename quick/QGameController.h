@@ -25,7 +25,9 @@ enum
 
 enum
 {
-    axisStickLeftX = 0,
+    axisDPadX = 0,
+    axisDPadY,
+    axisStickLeftX,
     axisStickLeftY,
     axisStickRightX,
     axisStickRightY,
@@ -45,6 +47,7 @@ enum
     buttonDPadDown,
     buttonDPadLeft,
     buttonDPadRight,
+    buttonDPadTouch,
     buttonShoulderLeft,
     buttonShoulderRight,
     buttonStickLeft,
@@ -53,7 +56,23 @@ enum
     buttonTriggerRight,
     buttonStart,
     buttonSelect,
+    buttonLeftStickUp,
+    buttonLeftStickDown,
+    buttonLeftStickLeft,
+    buttonLeftStickRight,
+    buttonRightStickUp,
+    buttonRightStickDown,
+    buttonRightStickLeft,
+    buttonRightStickRight,
     buttonMax
+};
+
+enum
+{
+    propertyPropagateButtonsToKeyboard = 0,
+    propertyReportsAbsoluteDPadValues,
+    propertyAllowsRotation,
+    propertyMax
 };
 
 enum
@@ -66,22 +85,23 @@ enum
 };
 
 bool isSupported();
-bool init(int type);
+bool init(unsigned int type);
 void terminate();
+unsigned int getType();
 void startFrame();
 int getMaxControllers();
 int getControllerCount();
-void* getControllerByIndex(int player);
-void* getControllerByPlayer(int player);
-bool getButtonState(void* handle, int button);
-float getAxisValue(void* handle, int axis);
-const char* getButtonDisplayName(int button);
-const char* getAxisDisplayName(int axis);
-int getProperty(void* handle, char* property);
-void setProperty(void* handle, char* property, int value);
-int getControllerType(void* handle);
-bool isButtonSupported(void* handle, int button);
-bool isAxisSupported(void* handle, int axis);
+void* getControllerByIndex(unsigned int player);
+void* getControllerByPlayer(unsigned int player);
+bool getButtonState(void* handle, unsigned int button);
+float getAxisValue(void* handle, unsigned int axis);
+const char* getButtonDisplayName(unsigned int button);
+const char* getAxisDisplayName(unsigned int axis);
+int getProperty(void* handle, unsigned int property);
+void setProperty(void* handle, unsigned int property, int value);
+unsigned int getControllerType(void* handle);
+bool isButtonSupported(void* handle, unsigned int button);
+bool isAxisSupported(void* handle, unsigned int axis);
 void useButtonEvents(bool enabled);
 
 }

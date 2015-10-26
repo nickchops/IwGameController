@@ -8,39 +8,51 @@
 #include "s3e.h"
 
 /**
- IwGameController is a singleton class. All public functionality should be
- accessed via static namespace functions (IwGameController::Init(),
- IwGameController(), etc.)
- Each controller extension is exposed via a class that inherits from the
- IwGameController virtual class. The multiple classes are hidden from the
- user by the static interface. This avoids run time checks for which
- extension to call functions for while providing a very simple interface.
- You need to call Terminate() to clean-up resources.
+ IwGameController uses inheritance for simplicity but is used like a 
+ singleton object - there is no reason you would want more than
+ one instance of one of the classes, but there's no harm doing that
+ if needed.
+ 
+ Each controller extension (ios, android, etc) is exposed via a class that
+ inherits from the CIwGameController.
+ 
+ IwGameControllerAny provides some static helper functions for just getting
+ "whatever class this current device supports". Splitting the agnostic
+ funcitons out to there makes maintainging and adding new platforms to
+ IwGameController easier (avoid complexity/bloat of static singleton)
 */
 
 namespace IwGameController
 {
-    // TODO: might move these all into the class itself
+    // TODO: move these all into the class itself?
+    
     struct Type
     {
-        enum eType
+        enum eType //TODO: might make this strings or otherwise extensible to decouple from parent class
         {
-            ANY = 0,                 // Input only - check for any type available. Use default type for the device.
-            ANDROID_ANY,             //Input only - use best android controller type available.
+            ANY = 0,                 // Input only - check for any type available. Use default type for the device/platform.
+            ANDROID_ANY,             // Input only - use best android controller type available (ouya on ouya, amazon on amazon, etc).
             ANDROID_GENERIC,
             ANDROID_OUYA_EVERYWHERE,
             ANDROID_AMAZON,
             IOS,
             DESKTOP_HID,
-            NONE                     // Output only - indicates no controller type has been initialised. TODO: prob remove this now droppign simgleton style
+            NONE                     // Output only - indicates no controller type has been initialised. TODO: remove this since dropping singleton style API?
         };
     };
     
     struct Axis
     {
+        //TODO: should we have an "any left analog" axis that combines dpad and lstick?
+        // Would be fairly typical for a game to just want any analog input.
+        // Meanwhile the tvOS pad (or other pads) are different to sticks as they have
+        // "sqaure limits" rather than circular ones, e.g. you can get (1,1) on a pad
+        // but not a stick.
+        // Might just want to have query functions that can ask "is DPAD touch pad?"
+        
         enum eAxis
         {
-            DPAD_X = 0,
+            DPAD_X = 0, // touch pad controllers like tvOS use this
             DPAD_Y,
             STICK_LEFT_X,
             STICK_LEFT_Y,
@@ -65,6 +77,7 @@ namespace IwGameController
             DPAD_DOWN,
             DPAD_LEFT,
             DPAD_RIGHT,
+            DPAD_TOUCH, // tvOS or other touch pad controllers: touch (not click)
             SHOULDER_LEFT,
             SHOULDER_RIGHT,
             STICK_LEFT,

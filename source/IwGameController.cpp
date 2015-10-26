@@ -17,7 +17,7 @@ namespace IwGameController
 	void* CIwGameController::s_ButtonCallbackUserdata = NULL;
 
     const char* const CIwGameController::s_ButtonNames[Button::MAX] = {
-        "A", "B", "X", "Y", "DPadCenter", "DPadUp", "DPadDown", "DPadLeft", "DPadRight",
+        "A", "B", "X", "Y", "DPadCenter", "DPadUp", "DPadDown", "DPadLeft", "DPadRight", "DPadTouch",
         "ShoulderLeft", "ShoulderRight", "StickLeft", "StickRight",
         "TriggerLeft", "TriggerRight", "Select", "Start",
         "LeftStickUp", "LeftStickDown", "LeftStickLeft", "LeftStickRight",

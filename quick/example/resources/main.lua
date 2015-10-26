@@ -9,16 +9,38 @@ dofile("helpers/VirtualResolution.lua")
 appWidth = 640
 appHeight = 480
 virtualResolution:initialise{userSpaceW=appWidth, userSpaceH=appHeight}
-screenWidth = virtualResolution:winToUserSize(director.displayWidth)
-screenHeight = virtualResolution:winToUserSize(director.displayHeight)
 
-propagateKeys = true
+function orientation()
+    virtualResolution:update()
+    virtualResolution:applyToScene(director:getCurrentScene())
+    screenWidth = virtualResolution:winToUserSize(director.displayWidth)
+    screenHeight = virtualResolution:winToUserSize(director.displayHeight)
+    
+    if lblSupported then
+        local leftEdge = virtualResolution.userWinMinX + 10
+        lblSupported.x = leftEdge
+        lblStickDbgL.x = leftEdge
+        lblStickDbgR.x = lblStickDbgL.x + 300
+        lblNumPlayers.x = leftEdge
+        lblcontrollerSelected.x = leftEdge
+        lblKeyBtns.x = leftEdge
+        
+        btnPropOn.x = leftEdge + btnPropX
+        btnPropOff.x = leftEdge + btnPropX + touchBtnW + 10
+        
+        touchPad.x = virtualResolution.userWinMaxX - 70
+    end
+end
+orientation()
+system:addEventListener({"orientation"}, orientation)
+
 numControllers = 0
-playerSelected = "none"
+controllerSelected = "none"
+controllerHandle = nil
 
 fontScale = 0.7
 
--- Update event to do actual controller state handling ------------------------
+-- Update event does actual controller state handling ------------------------
 
 dbg.print(gameController.axisStickLeftX)
 dbg.print(gameController.axisStickLeftY)
@@ -43,63 +65,70 @@ function update(event)
     --using the polling api. TODO: also show event results
     gameController.startFrame()
     
-    -- NB, flipping Y axis as opposite to Quick's axis!
-    local lx = gameController.getAxisValue(gameController.axisStickLeftX)
-    local ly = -gameController.getAxisValue(gameController.axisStickLeftY)
-    local rx = gameController.getAxisValue(gameController.axisStickRightX)
-    local ry = -gameController.getAxisValue(gameController.axisStickRightY)
+    -- NB, flipping Y axis as opposite to Quick's visual axis!
+    
+    local lx = gameController.getAxisValue(controllerHandle, gameController.axisStickLeftX)
+    local ly = -gameController.getAxisValue(controllerHandle, gameController.axisStickLeftY)
+    local rx = gameController.getAxisValue(controllerHandle, gameController.axisStickRightX)
+    local ry = -gameController.getAxisValue(controllerHandle, gameController.axisStickRightY)
+    
     leftPad:setTopAsFraction(lx,ly)
     rightPad:setTopAsFraction(rx,ry)
     
     lblStickDbgL.text = string.format("Left Stick: (%.5f,%.5f)", lx, ly)
     lblStickDbgR.text = string.format("Right Stick: (%.5f,%.5f)", rx, ry)
     
-    btnA:setState(gameController.getButtonState(gameController.buttonA))
-    btnB:setState(gameController.getButtonState(gameController.buttonB))
-    btnX:setState(gameController.getButtonState(gameController.buttonX))
-    btnY:setState(gameController.getButtonState(gameController.buttonY))
+    btnA:setState(gameController.getButtonState(controllerHandle, gameController.buttonA))
+    btnB:setState(gameController.getButtonState(controllerHandle, gameController.buttonB))
+    btnX:setState(gameController.getButtonState(controllerHandle, gameController.buttonX))
+    btnY:setState(gameController.getButtonState(controllerHandle, gameController.buttonY))
     
-    btnUp:setState(gameController.getButtonState(gameController.buttonDPadUp))
-    btnDown:setState(gameController.getButtonState(gameController.buttonDPadDown))
-    btnLeft:setState(gameController.getButtonState(gameController.buttonDPadLeft))
-    btnRight:setState(gameController.getButtonState(gameController.buttonDPadRight))
+    btnUp:setState(gameController.getButtonState(controllerHandle, gameController.buttonDPadUp))
+    btnDown:setState(gameController.getButtonState(controllerHandle, gameController.buttonDPadDown))
+    btnLeft:setState(gameController.getButtonState(controllerHandle, gameController.buttonDPadLeft))
+    btnRight:setState(gameController.getButtonState(controllerHandle, gameController.buttonDPadRight))
     
-    if gameController.getButtonState(gameController.buttonStickLeft) then
+    if gameController.getButtonState(controllerHandle, gameController.buttonStickLeft) then
         leftPad.top.color = color.white
     else
         leftPad.top.color = leftPad.topColor
     end
     
-    if gameController.getButtonState(gameController.buttonStickRight) then
+    if gameController.getButtonState(controllerHandle, gameController.buttonStickRight) then
         rightPad.top.color = color.white
     else
         rightPad.top.color = rightPad.topColor
     end
     
-    triggerState(btnShoulderLeft, gameController.getButtonState(gameController.buttonShoulderLeft))
-    triggerState(btnShoulderRight, gameController.getButtonState(gameController.buttonShoulderRight))
+    triggerState(btnShoulderLeft, gameController.getButtonState(controllerHandle, gameController.buttonShoulderLeft))
+    triggerState(btnShoulderRight, gameController.getButtonState(controllerHandle, gameController.buttonShoulderRight))
 
-    triggerState(triggerLeft, gameController.getAxisValue(gameController.axisTriggerLeft))
-    triggerState(triggerRight, gameController.getAxisValue(gameController.axisTriggerRight))
+    triggerState(triggerLeft, gameController.getAxisValue(controllerHandle, gameController.axisTriggerLeft))
+    triggerState(triggerRight, gameController.getAxisValue(controllerHandle, gameController.axisTriggerRight))
 end
 
 
 -- Periodic check for new/lost controllers ------------------------------------
 
 function checkControllers(event)
-    numControllers = gameController.getPlayerCount()
+    numControllers = gameController.getControllerCount()
 
-    local gotController = false
-    local n = 0
-    repeat
-        n = n+1
-        gotController = gameController.selectControllerByPlayer(n)
-    until gotController or n == gameController.getMaxControllers()
-        
-    if n == 0 then
-        playerSelected = "none"
+    controllerHandle = nil
+    
+    if numControllers == 1 and gameController.getMaxControllers() == 1 then
+        controllerSelected = 1
     else
-        playerSelected = n
+        local n = 0
+        repeat
+            n = n+1
+            controllerHandle = gameController.getControllerByIndex(n)
+        until controllerHandle or n == gameController.getMaxControllers()
+            
+        if controllerHandle == nil then
+            controllerSelected = "none"
+        else
+            controllerSelected = n
+        end
     end
 end
 
@@ -107,62 +136,61 @@ end
 -- Simple buttons for key propagation -----------------------------------------
 --TODO: not showing keys yet plus need non-touch way to press buttons!
 --This bit is a bit pointless atm...
-btnCount = 0
-btnX=appWidth-20
-btnW=appWidth/5
-btnH=appHeight/16
+touchBtnW=appWidth/6
+touchBtnH=appHeight/18
 
 function touchKeyEventsOn(event)
-    propagateKeys = not propagateKeys
-    gameController.setPropagateButtonsToKeyboard(true)
+    tween:from(event.target, {xScale=0.9})
+    gameController.setProperty(controllerHandle, propertyPropagateButtonsToKeyboard, 1)
 end
 local function touchKeyEventsOff(event)
-    gameController.setPropagateButtonsToKenablyboard(false)
+    tween:from(event.target, {xScale=0.9})
+    gameController.setProperty(controllerHandle, propertyPropagateButtonsToKeyboard, 0)
 end
 
-function addButton(text, touchEvent)
-    btnCount = btnCount + 1
-    local button = director:createRectangle({x=btnX, y=appHeight - (btnH+10)*btnCount, w=btnW, h=btnH, color=color.blue, xAnchor=1, yAnchor=0})
-    button:addChild(director:createLabel({x=0, y=0, hAlignment="centre", vAlignment="centre", text=text, w=btnW/fontScale, h=btnH/fontScale, color=color.white, xScale=fontScale, yScale=fontScale}))
+function addButton(text, touchEvent, x, y)
+    local button = director:createRectangle({xAnchor=0.5, yAnchor=0.5, x=x, y=y, w=touchBtnW, h=touchBtnH, color=color.blue, strokeColor=color.darkBlue})
+    button:addChild(director:createLabel({x=0, y=5, hAlignment="centre", vAlignment="centre", text=text, w=touchBtnW/fontScale, h=touchBtnH/fontScale, color=color.lightBlue, xScale=fontScale, yScale=fontScale}))
     button:addEventListener("touch", touchEvent)
+    return button
 end
 
 
 -- Main rendering -------------------------------------------------------------
 
--- Simple example, just use default scene!
-virtualResolution:applyToScene(director:getCurrentScene())
+lblSupported = director:createLabel({x=10, y=appHeight-30, w=(appWidth-20)/fontScale, vAlignment="bottom", text="", color=color.white})
 
-lblSupported = director:createLabel({x=10, y=appHeight-80, w=(appWidth-20)/fontScale, vAlignment="bottom", text="", color=color.white})
+lblStickDbgL = director:createLabel({x=10, y=45, w=(appWidth/2)/fontScale, vAlignment="bottom", text="Left Stick: (0.00000,0.00000)", color=color.white, xScale=fontScale, yScale=fontScale})
 
-lblStickDbgL = director:createLabel({x=10, y=10, w=(appWidth/2)/fontScale, vAlignment="bottom", text="Left Stick: (0.00000,0.00000)", color=color.white, xScale=fontScale, yScale=fontScale})
+lblStickDbgR = director:createLabel({x=310, y=45, w=(appWidth/2)/fontScale, vAlignment="bottom", text="Right Stick: (0.00000,0.00000)", color=color.white, xScale=fontScale, yScale=fontScale})
 
-lblStickDbgR = director:createLabel({x=appWidth/2, y=10, w=(appWidth/2)/fontScale, vAlignment="bottom", text="Right Stick: (0.00000,0.00000)", color=color.white, xScale=fontScale, yScale=fontScale})
+btnPropX = 380
 
-if gameController.isAvailable() then
+if gameController.isSupported() then
     gameController.init()
-    lblSupported.text = "Controller API available"
+    lblSupported.text = "Controller API available :)"
+    lblSupported.color = color.green
     system:addEventListener({"update"}, update)
     checkControllers()
     system:addTimer(checkControllers, 5) --check for changes every 5 seconds
     
-    lblKeyBtns = director:createLabel({x=10, y=appHeight-30, w=(appWidth-100)/fontScale, vAlignment="bottom", text="Controller generates key events? ->", color=color.white})
+    lblKeyBtns = director:createLabel({x=10, y=10, w=(appWidth-100)/fontScale, vAlignment="bottom", text="Generate key events? ->", color=color.white})
     
-    --
-    addButton("Enable", touchKeyEventsOn)
-    addButton("Disable", touchKeyEventsOff)
+    btnPropOn = addButton("Enable", touchKeyEventsOn, btnPropX, touchBtnH/2+10)
+    btnPropOff = addButton("Disable", touchKeyEventsOff, btnPropOn.x+touchBtnW+10, btnPropOn.y)
 else
-    lblSupported.text = "Controller API NOT available!"
+    lblSupported.text = "Controller API NOT available :("
+    lblSupported.color = color.red
 end
 
-lblNumPlayers = director:createLabel({x=10, y=appHeight-110, w=(appWidth-20)/fontScale, vAlignment="bottom", text="Number of controllers found: " .. numControllers, color=color.white})
+lblNumPlayers = director:createLabel({x=10, y=appHeight-60, w=(appWidth-20)/fontScale, vAlignment="bottom", text="Controllers found: " .. numControllers, color=color.white})
 
-lblPlayerSelected = director:createLabel({x=10, y=appHeight-140, w=(appWidth-20)/fontScale, vAlignment="bottom", text="Controller selected for player: " .. playerSelected, color=color.white})
+lblcontrollerSelected = director:createLabel({x=10, y=appHeight-90, w=(appWidth-20)/fontScale, vAlignment="bottom", text="Controller selected: " .. controllerSelected, color=color.white})
 
 --pads and buttons to show controller state
 
-topRowY = appHeight*0.23+50
-bottomRowY = appHeight*0.23
+topRowY = appHeight*0.3+50
+bottomRowY = appHeight*0.3
 
 leftPadX = appWidth/6
 dPadX = appWidth/6*2
@@ -208,8 +236,18 @@ btnShoulderRight = director:createRectangle({xAnchor=0.5, yAnchor=0.5,  x=rightP
 triggerLeft = director:createRectangle({xAnchor=0.5, yAnchor=0.5,  x=dPadX+10, y=bottomTriggerY, w=80, h=25, color=grey, strokeColor=darkGrey, strokeWidth=2})
 triggerRight = director:createRectangle({xAnchor=0.5, yAnchor=0.5,  x=rightPadX-10, y=bottomTriggerY, w=80, h=25, color=grey, strokeColor=darkGrey, strokeWidth=2})
 
+touchPad = director:createNode({x=appWidth-120, y=appHeight-60})
+
+local touchPadPad = director:createRectangle({xAnchor=0.5, yAnchor=0.5, x=0, y=0, w=80, h=80, color=grey, strokeColor=darkGrey, strokeWidth=2})
+touchPad:addChild(touchPadPad)
+
+touchPad:addChild(director:createRectangle({xAnchor=0.5, yAnchor=0.5, x=0, y=-50, w=touchPadPad.w+10, h=touchPadPad.h+110, color=darkerGrey, strokeWidth=0, zOrder=-1}))
+
+touchPoint = director:createCircle({xAnchor=0.5, yAnchor=0.5, x=0, y=0, radius=touchPadPad.w/8, color={100,100,100}, strokeWidth=0, zOrder=1})
+touchPad:addChild(touchPoint)
+
 btnLeft:pressButton()
 
 --TODO: register key event and display normal keys when pressed/released
 
-
+orientation()

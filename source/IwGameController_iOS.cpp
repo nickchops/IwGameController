@@ -171,6 +171,8 @@ namespace IwGameController
             return s3eIOSControllerGetButtonState((s3eIOSController*)handle, S3E_IOSCONTROLLER_BUTTON_RIGHT_THUMBSTICK_LEFT);
         case Button::RIGHT_STICK_RIGHT:
             return s3eIOSControllerGetButtonState((s3eIOSController*)handle, S3E_IOSCONTROLLER_BUTTON_RIGHT_THUMBSTICK_RIGHT);
+        //case Button::DPAD_TOUCH:
+        //    return s3eIOSControllerGetButtonState((s3eIOSController*)handle, S3E_IOSCONTROLLER_BUTTON_DPAD_TOUCH);
         default:
             return false;
         }
@@ -242,6 +244,10 @@ namespace IwGameController
                 return true;
             }
         }
+
+        if (!handle || handle && s3eIOSControllerSupportsMicro((s3eIOSController*)handle))
+            if (button == Button::DPAD_TOUCH)
+                return true;
         
         return false;
     

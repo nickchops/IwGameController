@@ -6,36 +6,8 @@
 
 using namespace IwGameController;
 
-static IwGameController::Button::eButton g_Buttons[IwGameController::Button::MAX] = {
-	IwGameController::Button::A,
-	IwGameController::Button::B,
-	IwGameController::Button::DPAD_CENTER,
-	IwGameController::Button::DPAD_DOWN,
-	IwGameController::Button::DPAD_LEFT,
-	IwGameController::Button::DPAD_RIGHT,
-	IwGameController::Button::DPAD_UP,
-	IwGameController::Button::SHOULDER_LEFT,
-	IwGameController::Button::SHOULDER_RIGHT,
-	IwGameController::Button::STICK_LEFT,
-	IwGameController::Button::STICK_RIGHT,
-	IwGameController::Button::TRIGGER_LEFT,
-	IwGameController::Button::TRIGGER_RIGHT,
-	IwGameController::Button::X,
-	IwGameController::Button::Y,
-    IwGameController::Button::START,
-    IwGameController::Button::SELECT };
-
-static IwGameController::Axis::eAxis g_Axes[IwGameController::Axis::MAX] = {
-	IwGameController::Axis::STICK_LEFT_X,
-	IwGameController::Axis::STICK_LEFT_Y,
-	IwGameController::Axis::STICK_RIGHT_X,
-	IwGameController::Axis::STICK_RIGHT_Y,
-	IwGameController::Axis::TRIGGER_LEFT,
-	IwGameController::Axis::TRIGGER_RIGHT };
-
 //Based on s3eAndroidController and s3eKeyboard examples.
 //We're displaying keyboard keys as well as controller for comparison.
-
 
 // Last 5 controller button presses
 #define NUM_EVENTS_TO_SHOW 5

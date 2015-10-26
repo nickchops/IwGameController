@@ -96,7 +96,7 @@ virtualResolution:applyToScene(myScene)
 
 virtualResolution:scaleTouchEvents(true)
 -- Optionally set this true to make event.x and event.y values be returned in
--- user space rather than window/screen space. Not recommened as it reduces
+-- user space rather than window/screen space. Not recommended as it reduces
 -- performance of general event handling and is rather hacky. But good for
 -- some quick testing.
 
@@ -201,7 +201,22 @@ function virtualResolution:update()
         self.xOffset = self.xOffset + (self.winW - self.userW*self.scale) / 2
     end
     
+    self:getWindowValuesInUserSpace()
+    
     self.setup = true
+end
+
+function virtualResolution:getWindowValuesInUserSpace()
+    -- These are screen/window size and extremes in user coords
+    -- They can help when drawing to full screen area when VR is switched on
+    -- Otherwise, to draw to full screen you would need to detatch from the scaler node
+    dbg.print("setting userWinMinX etc")
+    self.userWinW = self:winToUserSize(director.displayWidth)
+    self.userWinH = self:winToUserSize(director.displayHeight)
+    self.userWinMinX = self.userW/2 - self.userWinW/2
+    self.userWinMaxX = self.userW/2 + self.userWinW/2
+    self.userWinMinY = self.userH/2 - self.userWinH/2
+    self.userWinMaxY = self.userH/2 + self.userWinH/2
 end
 
 -- Set a scene to be scaled and offset. Quality will depend on how well GL
@@ -214,7 +229,7 @@ function virtualResolution:applyToScene(scene, transformActualScene)
     -- Marmalade ticket MAINT-2657 was opened to look into this.
     
     if not self.setup then
-        dbg.assert("virtualResolution:applyToScene called before initialise or initialiseForUserCoordSpace")
+        dbg.assert(false, "virtualResolution:applyToScene called before initialise or initialiseForUserCoordSpace")
         return
     end
     
@@ -249,7 +264,7 @@ function virtualResolution:applyToScene(scene, transformActualScene)
         -- Override scene:addChild() to call scene.scalerRootNode:addChild()
         -- Note that we cant just do scene.addChild = scene.scalerRootNode.addChild
         -- because those .addChild functions are the same actual function value! It's the
-        -- "self" value passed implicitly via : mechanism that determins which node is used!
+        -- "self" value passed implicitly via : mechanism that determines which node is used!
         scene.addChildNoTrans = scene.addChild -- keep a backup so user can still add "window space" nodes
         scene.addChild = virtualResolutionSceneAddChildOverride
         
@@ -330,7 +345,7 @@ end
 --------------------------------------
 --Public release function
 
--- note that you likley only ever want to call this if destroying a scene or
+-- note that you likely only ever want to call this if destroying a scene or
 -- turning off virtual resolution (rare!). For the later, you will want to
 -- first "move" all scene nodes from being children of the scaler node to
 -- children of the scene itself. TODO: implement keepChildren to do that!
@@ -344,10 +359,10 @@ end
 
 -- Experimental support for auto-scaling touch event positions
 
--- Call with true to make all touch listers event.x/y be scaled to user coordinates
+-- Call with true to make all touch listeners event.x/y be scaled to user coordinates
 -- Call with false to reset to default behaviour (event coords are world space)
 -- Off by default.
--- This is quite a hack! It is recommened to use virtualResolution:getUserX()
+-- This is quite a hack! It is recommended to use virtualResolution:getUserX()
 -- or getLocalCoords() inside event listeners instead.
 -- Note that getLocalCoords is from github.com/nickchops/MarmaladeQuickNodeUtility
 --
@@ -372,12 +387,12 @@ function virtualResolutionHandleEventWithListenerOverride(event, listener)
     -- turn screen coords into user coords
     if event.name == "touch" then
         -- The same touch event object propagates down node chain. We have to flag to avoid
-        -- transforming recursively! Also, the evnent objects get reused for began, moved and ended
+        -- transforming recursively! Also, the event objects get reused for began, moved and ended
         -- phases, so have to flag each separately.
         -- Would be nice to transform on QEvent creation, but would then have to change QSystems
         -- code that does node intersection testing
         
-        --dbg.print("in override touch funtion. phase=" .. event.phase)
+        --dbg.print("in override touch function. phase=" .. event.phase)
         local doTrans = true
         if event.scaledFlag == event.phase then
             if event.phase == "moved" then
@@ -428,6 +443,10 @@ function virtualResolution:getUserY(winY)
     return (winY - self.yOffset) / self.scale
 end
 
+function virtualResolution:getUserPos(winX, winY)
+    return (winX - self.xOffset) / self.scale, (winY - self.yOffset) / self.scale
+end
+
 function virtualResolution:userToWinSize(userSize)
     return userSize * self.scale
 end
@@ -452,3 +471,6 @@ function virtualResolution:getWinY(userY)
     return userY * self.scale + self.yOffset
 end
 
+function virtualResolution:getWinPos(userX, userY)
+    return userX * self.scale + self.xOffset, userY * self.scale + self.yOffset
+end

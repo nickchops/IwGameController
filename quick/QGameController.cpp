@@ -54,7 +54,7 @@ namespace gameController {
         return IwGameController::IsSupported();
     }
     
-    bool init(int type)
+    bool init(unsigned int type)
     {
         s_controller = IwGameController::Create((IwGameController::Type::eType)type);
         
@@ -71,6 +71,14 @@ namespace gameController {
             delete s_controller;
             s_controller = NULL;
         }
+    }
+    
+    unsigned int getType()
+    {
+        if (s_controller)
+            return s_controller->GetType();
+        else
+            return gameController::typeNone;
     }
 
     void startFrame()
@@ -95,33 +103,39 @@ namespace gameController {
             return 0;
     }
     
-    void* getControllerByIndex(int player)
-    {
-        return NULL;
-    }
-    
-    void* getControllerByPlayer(int player)
-    {
-        return NULL;
-    }
-
-    bool getButtonState(void* handle, int button)
+    void* getControllerByIndex(unsigned int index)
     {
         if (s_controller)
-            s_controller->GetButtonState((CIwGameControllerHandle*)handle, (IwGameController::Button::eButton)button);
+            return s_controller->GetControllerByIndex(index);
+        else
+            return NULL;
+    }
+    
+    void* getControllerByPlayer(unsigned int player)
+    {
+        if (s_controller)
+            return s_controller->GetControllerByPlayer(player);
+        else
+            return NULL;
+    }
+
+    bool getButtonState(void* handle, unsigned int button)
+    {
+        if (s_controller)
+            return s_controller->GetButtonState((CIwGameControllerHandle*)handle, (IwGameController::Button::eButton)button);
         else
             return false;
     }
 
-    float getAxisValue(void* handle, int axis)
+    float getAxisValue(void* handle, unsigned int axis)
     {
         if (s_controller)
-            s_controller->GetAxisValue((CIwGameControllerHandle*)handle, (IwGameController::Axis::eAxis)axis);
+            return s_controller->GetAxisValue((CIwGameControllerHandle*)handle, (IwGameController::Axis::eAxis)axis);
         else
             return 0.0;
     }
 
-    const char* getButtonDisplayName(int button)
+    const char* getButtonDisplayName(unsigned int button)
     {
         if (button < 0 || button < IwGameController::Button::MAX)
             return "";
@@ -129,7 +143,7 @@ namespace gameController {
         return CIwGameController::s_ButtonNames[button];
     }
 
-    const char* getAxisDisplayName(int axis)
+    const char* getAxisDisplayName(unsigned int axis)
     {
         if (axis < 0 || axis < IwGameController::Axis::MAX)
             return "";
@@ -137,28 +151,56 @@ namespace gameController {
         return CIwGameController::s_AxisNames[axis];
     }
     
-    int getProperty(void* handle, char* property)
+    //todo: make lua return a pair of (bool=success?, int=value)
+    int getProperty(void* handle, unsigned int property)
     {
-        return 0;
+        if (property > propertyMax)
+            return -1;
+        
+        if (!s_controller)
+            return -1;
+        
+        return s_controller->GetProperty((CIwGameControllerHandle*)handle,
+                (IwGameController::Property::eProperty)property);
     }
     
-    void setProperty(void* handle, char* property, int value)
+    //todo: make return true/false for success
+    void setProperty(void* handle, unsigned int property, int value)
     {
+        if (property > propertyMax)
+            return;
+    
+        if (!s_controller)
+            return;
+        
+        s_controller->SetProperty((CIwGameControllerHandle*)handle,
+                (IwGameController::Property::eProperty)property, value);
     }
     
-    int getControllerType(void* handle)
+    unsigned int getControllerType(void* handle)
     {
-        return 0;
+        if (!s_controller)
+            return typeUnknown;
+        
+        return (unsigned int)s_controller->GetControllerType((CIwGameControllerHandle*)handle);
     }
 
-    bool isButtonSupported(void* handle, int button)
+    bool isButtonSupported(void* handle, unsigned int button)
     {
-        return false;
+        if (!s_controller)
+            return typeUnknown;
+        
+        return s_controller->IsButtonSupported((CIwGameControllerHandle*)handle,
+                (IwGameController::Button::eButton)button);
     }
     
-    bool isAxisSupported(void* handle, int axis)
+    bool isAxisSupported(void* handle, unsigned int axis)
     {
-        return false;
+        if (!s_controller)
+            return typeUnknown;
+        
+        return s_controller->IsAxisSupported((CIwGameControllerHandle*)handle,
+                (IwGameController::Axis::eAxis)axis);
     }
     
     void useButtonEvents(bool enabled)
