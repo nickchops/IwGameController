@@ -84,6 +84,24 @@ function update(event)
     touchPad.point.x = touchPad.pad.w/2*px
     touchPad.point.y = -touchPad.pad.h/2*py
     
+    if gameController.getButtonState(controllerHandle, gameController.buttonDPadTouch) then
+        touchPad.point.isVisible = true
+    else
+        touchPad.point.isVisible = false
+    end
+    
+    if gameController.getButtonState(controllerHandle, gameController.buttonA) then
+        touchPad.pad.color={100,100,100}
+    else
+        touchPad.pad.color=grey
+    end
+    
+    if gameController.getButtonState(controllerHandle, gameController.buttonX) then
+        touchPad.playPause.color={100,100,100}
+    else
+        touchPad.playPause.color=grey
+    end
+    
     btnA:setState(gameController.getButtonState(controllerHandle, gameController.buttonA))
     btnB:setState(gameController.getButtonState(controllerHandle, gameController.buttonB))
     btnX:setState(gameController.getButtonState(controllerHandle, gameController.buttonX))
@@ -247,12 +265,31 @@ touchPad = director:createNode({x=appWidth-120, y=appHeight-60})
 touchPad.pad = director:createRectangle({xAnchor=0.5, yAnchor=0.5, x=0, y=0, w=80, h=80, color=grey, strokeColor=darkGrey, strokeWidth=2})
 touchPad:addChild(touchPad.pad)
 
-touchPad:addChild(director:createRectangle({xAnchor=0.5, yAnchor=0.5, x=0, y=-50, w=touchPad.pad.w+10, h=touchPad.pad.h+110, color=darkerGrey, strokeWidth=0, zOrder=-1}))
+touchPad:addChild(director:createRectangle({xAnchor=0.5, yAnchor=0.5, x=0, y=-60, w=touchPad.pad.w+10, h=touchPad.pad.h+130, color=darkerGrey, strokeWidth=0, zOrder=-1}))
 
-touchPad.point = director:createCircle({xAnchor=0.5, yAnchor=0.5, x=0, y=0, radius=touchPad.pad.w/8, color={100,100,100}, strokeWidth=0, zOrder=1})
+touchPad.point = director:createCircle({xAnchor=0.5, yAnchor=0.5, x=0, y=0, radius=touchPad.pad.w/8, color={100,100,100}, strokeWidth=0, zOrder=1, isVisible=false})
 touchPad:addChild(touchPad.point)
 
-btnLeft:pressButton()
+touchPad:addChild(director:createCircle({xAnchor=0.5, yAnchor=0.5, radius=15,
+            x=-touchPad.pad.w/4, y=-touchPad.pad.h/2-20, color=grey, strokeColor=darkGrey, strokeWidth=1}))
+touchPad:addChild(director:createCircle({xAnchor=0.5, yAnchor=0.5, radius=15,
+            x=touchPad.pad.w/4, y=-touchPad.pad.h/2-20, color=grey, strokeColor=darkGrey, strokeWidth=1}))
+touchPad:addChild(director:createCircle({xAnchor=0.5, yAnchor=0.5, radius=15,
+            x=-touchPad.pad.w/4, y=-touchPad.pad.h/2-55, color=grey, strokeColor=darkGrey, strokeWidth=1}))
+
+touchPad:addChild(director:createCircle({xAnchor=0.5, yAnchor=0.5, radius=15,
+            x=touchPad.pad.w/4, y=-touchPad.pad.h/2-55, color=grey, strokeColor=darkGrey, strokeWidth=1}))
+touchPad:addChild(director:createRectangle({xAnchor=0, yAnchor=0, h=35, w=32,
+            x=touchPad.pad.w/4-16, y=-touchPad.pad.h/2-90, color=darkGrey, strokeWidth=0, zOrder=1}))
+touchPad:addChild(director:createRectangle({xAnchor=0, yAnchor=0, h=35, w=30,
+            x=touchPad.pad.w/4-15, y=-touchPad.pad.h/2-90, color=grey, strokeWidth=0, zOrder=2}))
+touchPad:addChild(director:createCircle({xAnchor=0.5, yAnchor=0.5, radius=15,
+            x=touchPad.pad.w/4, y=-touchPad.pad.h/2-90, color=grey, strokeColor=darkGrey, strokeWidth=1}))
+
+touchPad.playPause = director:createCircle({xAnchor=0.5, yAnchor=0.5, radius=15,
+            x=-touchPad.pad.w/4, y=-touchPad.pad.h/2-90, color=grey, strokeColor=darkGrey, strokeWidth=1})
+touchPad:addChild(touchPad.playPause)
+
 
 --TODO: register key event and display normal keys when pressed/released
 
