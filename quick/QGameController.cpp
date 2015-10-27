@@ -98,17 +98,18 @@ namespace gameController {
     int getMaxControllers()
     {
         if (s_controller)
-            s_controller->GetMaxControllers();
+            return s_controller->GetMaxControllers();
         else
             return 0;
     }
     
     void* getControllerByIndex(unsigned int index)
     {
-        if (s_controller)
-            return s_controller->GetControllerByIndex(index);
-        else
+        if (!s_controller || index < 1 || index > s_controller->GetMaxControllers())
             return NULL;
+        else
+            return s_controller->GetControllerByIndex(index-1);
+
     }
     
     void* getControllerByPlayer(unsigned int player)
@@ -137,7 +138,7 @@ namespace gameController {
 
     const char* getButtonDisplayName(unsigned int button)
     {
-        if (button < 0 || button < IwGameController::Button::MAX)
+        if (button > IwGameController::Button::MAX)
             return "";
         
         return CIwGameController::s_ButtonNames[button];
@@ -145,7 +146,7 @@ namespace gameController {
 
     const char* getAxisDisplayName(unsigned int axis)
     {
-        if (axis < 0 || axis < IwGameController::Axis::MAX)
+        if (axis > IwGameController::Axis::MAX)
             return "";
         
         return CIwGameController::s_AxisNames[axis];

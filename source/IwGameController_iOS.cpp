@@ -47,7 +47,7 @@ namespace IwGameController
     {
         if (s_ButtonCallback)
         {
-            /* Can emulate events via state check...
+            /* Can emulate events via state check... Might actuall be able to do events in IOS extension...
             //loop through all controllers
             {
                 for (int i = 0; i < Button::MAX; i++)
@@ -127,7 +127,7 @@ namespace IwGameController
     bool CIwGameControllerIOS::GetButtonState(CIwGameControllerHandle* handle, Button::eButton button)
     {
 		if (!handle)
-			return 0.0;
+			return false;
 
         switch (button)
         {
@@ -172,7 +172,7 @@ namespace IwGameController
         case Button::RIGHT_STICK_RIGHT:
             return s3eIOSControllerGetButtonState((s3eIOSController*)handle, S3E_IOSCONTROLLER_BUTTON_RIGHT_THUMBSTICK_RIGHT);
         case Button::DPAD_TOUCH:
-            return s3ePointerGetTouchState(1) & S3E_POINTER_STATE_DOWN;
+            return s3ePointerGetTouchState(0) & S3E_POINTER_STATE_DOWN;
         default:
             return false;
         }
@@ -188,10 +188,12 @@ namespace IwGameController
         case Axis::DPAD_X:
             return s3eIOSControllerGetAxisValue((s3eIOSController*)handle, S3E_IOSCONTROLLER_AXIS_DPAD_X);
         case Axis::DPAD_Y:
-            return s3eIOSControllerGetAxisValue((s3eIOSController*)handle, S3E_IOSCONTROLLER_AXIS_DPAD_Y);
+            //Touch pad has origin at bottom left unlike normal controllers
+            return -s3eIOSControllerGetAxisValue((s3eIOSController*)handle, S3E_IOSCONTROLLER_AXIS_DPAD_Y);
         case Axis::STICK_LEFT_X:
             return s3eIOSControllerGetAxisValue((s3eIOSController*)handle, S3E_IOSCONTROLLER_AXIS_LEFT_THUMBSTICK_X);
         case Axis::STICK_LEFT_Y:
+            //Not sure if we need to flip these too - dont have a pad to test with atm!
             return s3eIOSControllerGetAxisValue((s3eIOSController*)handle, S3E_IOSCONTROLLER_AXIS_LEFT_THUMBSTICK_Y);
         case Axis::STICK_RIGHT_X:
             return s3eIOSControllerGetAxisValue((s3eIOSController*)handle, S3E_IOSCONTROLLER_AXIS_RIGHT_THUMBSTICK_X);

@@ -10,6 +10,11 @@ appWidth = 640
 appHeight = 480
 virtualResolution:initialise{userSpaceW=appWidth, userSpaceH=appHeight}
 
+grey = {70,70,70}
+darkishGrey = {55,55,55}
+darkGrey = {50,50,50}
+darkerGrey = {30,30,30}
+
 function orientation()
     virtualResolution:update()
     virtualResolution:applyToScene(director:getCurrentScene())
@@ -64,7 +69,7 @@ end
 function update(event)
     --using the polling api. TODO: also show event results
     gameController.startFrame()
-    
+
     -- NB, flipping Y axis as opposite to Quick's visual axis!
     
     local lx = gameController.getAxisValue(controllerHandle, gameController.axisStickLeftX)
@@ -77,10 +82,10 @@ function update(event)
     
     lblStickDbgL.text = string.format("Left Stick: (%.5f,%.5f)", lx, ly)
     lblStickDbgR.text = string.format("Right Stick: (%.5f,%.5f)", rx, ry)
-    
-    px = gameController.getAxisValue(controllerHandle, gameController.axisDpadX)
-    py = -gameController.getAxisValue(controllerHandle, gameController.axisDpad)
-    
+
+    local px = gameController.getAxisValue(controllerHandle, gameController.axisDPadX)
+    local py = gameController.getAxisValue(controllerHandle, gameController.axisDPadY)
+
     touchPad.point.x = touchPad.pad.w/2*px
     touchPad.point.y = -touchPad.pad.h/2*py
     
@@ -146,12 +151,17 @@ function checkControllers(event)
         repeat
             n = n+1
             controllerHandle = gameController.getControllerByIndex(n)
-        until controllerHandle or n == gameController.getMaxControllers()
-            
+        until controllerHandle or n == numControllers
+
+        print(n)
+
         if controllerHandle == nil then
             controllerSelected = "none"
         else
             controllerSelected = n
+
+            --visually useful to show this way for TV OS!
+            gameController.setProperty(controllerHandle, gameController.propertyReportsAbsoluteDPadValues, 1)
         end
     end
 end
@@ -164,12 +174,16 @@ touchBtnW=appWidth/6
 touchBtnH=appHeight/18
 
 function touchKeyEventsOn(event)
-    tween:from(event.target, {xScale=0.9})
-    gameController.setProperty(controllerHandle, propertyPropagateButtonsToKeyboard, 1)
+    if event.phase == "ended" then
+        tween:from(event.target, {xScale=0.9})
+        gameController.setProperty(controllerHandle, propertyPropagateButtonsToKeyboard, 1)
+    end
 end
 local function touchKeyEventsOff(event)
-    tween:from(event.target, {xScale=0.9})
-    gameController.setProperty(controllerHandle, propertyPropagateButtonsToKeyboard, 0)
+    if event.phase == "ended" then
+        tween:from(event.target, {xScale=0.9})
+        gameController.setProperty(controllerHandle, propertyPropagateButtonsToKeyboard, 0)
+    end
 end
 
 function addButton(text, touchEvent, x, y)
@@ -191,7 +205,7 @@ lblStickDbgR = director:createLabel({x=310, y=45, w=(appWidth/2)/fontScale, vAli
 btnPropX = 380
 
 if gameController.isSupported() then
-    gameController.init()
+    gameController.init(gameController.typeIos)
     lblSupported.text = "Controller API available :)"
     lblSupported.color = color.green
     system:addEventListener({"update"}, update)
@@ -232,11 +246,6 @@ btnB = OnScreenButton.Create({x=btnsX+36, y=topRowY, radius=13, topColor=color.r
 btnA = OnScreenButton.Create({x=btnsX, y=topRowY-17, radius=15, topColor=color.green, baseColor=color.darkGreen, scale3d=scale3d, depth3d=5})
 btnX = OnScreenButton.Create({x=btnsX-36, y=topRowY, radius=13, topColor=color.blue, baseColor={0,0,140}, scale3d=scale3d, depth3d=4.5})
 btnY = OnScreenButton.Create({x=btnsX, y=topRowY+13, radius=12, topColor=color.yellow, baseColor={90,90,0}, scale3d=scale3d, depth3d=3.5})
-
-grey = {70,70,70}
-darkishGrey = {55,55,55}
-darkGrey = {50,50,50}
-darkerGrey = {30,30,30}
 
 dPadLines = {-58,10, -17,10, -16,26, 16,26, 17,10, 58,10, 61,-12, 19,-12, 20,-34, -20,-34, -19,-12, -61,-12, -58,10}
 director:createLines({x=dPadX, y=bottomRowY, coords=dPadLines, strokeWidth=0, color=darkerGrey})
