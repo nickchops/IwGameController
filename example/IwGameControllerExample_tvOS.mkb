@@ -1,0 +1,21 @@
+#!/usr/bin/env mkb
+files
+{
+    IwGameControllerExample.cpp
+}
+
+defines
+{
+    MARMALADE_TVOS
+}
+
+subprojects
+{
+    iwutil
+    iwgamecontroller
+}
+
+deployment
+{
+	android-custom-activity='com.nickchops.s3eAndroidController.s3eAndroidControllerActivity'
+}

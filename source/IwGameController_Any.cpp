@@ -54,6 +54,7 @@ namespace IwGameController
 			switch (os)
 			{
 			case S3E_OS_ID_IPHONE:
+            case S3E_OS_ID_TVOS:
 				type = Type::IOS;
 				break;
 			case S3E_OS_ID_ANDROID:

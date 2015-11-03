@@ -122,7 +122,7 @@ int main()
 		}
 		else
 		{
-			s3eDebugPrint(x, y, "Please mash controller number 1!", 1);
+			s3eDebugPrint(x, y, "Please mash controller number 1 (and 2)!", 1);
 			y += lineHeight;
 
 			controller->StartFrame();
@@ -131,59 +131,68 @@ int main()
 
 			s3eDebugPrintf(x, y, 1, "Controllers found: %d", numControllers);
 			y += lineHeight;
+            
+            int yStart = y;
+            int xStart = x;
 
             // Realistically you wouldn't do this controller discovery on every loop!
-			int n = -1;
-			while (!controllerHandle && n < numControllers)
+			int n = 0;
+			while (n < numControllers && n < 2) //just two will fit on most screens..
 			{
-				n++;
-				controllerHandle = controller->GetControllerByIndex(n);
-			}
-			
-			if (controllerHandle)
-				s3eDebugPrintf(x, y, 1, "Using controller at index: %d", n);
-			else
-				s3eDebugPrintf(x, y, 1, "Could not get a controller to use :(");
-            
-            controller->SetProperty(controllerHandle, IwGameController::Property::REPORTS_ABSOLUTE_DPAD_VALUES, true);
-
-			y += lineHeight*2;
-			x = 20;
-
-			// Display state of each axis
-			s3eDebugPrint(x, y, "Axis positions:", 0);
-			x += 20;
-			y += lineHeight;
-			for (int i = 0; i < IwGameController::Axis::MAX; i++)
-			{
-                Axis::eAxis axisId = (Axis::eAxis)i;
-
-                if (!CIwGameController::GetAxisDisplayName(name, axisId, true))
-                    strcpy(name, "error");
-
-                s3eDebugPrintf(x, y, 1, "Axis: %s (%d) = %f", name, i, controller->GetAxisValue(controllerHandle, axisId));
-
-				y += lineHeight;
-			}
-
-			y += lineHeight;
-			x = 20;
-
-			// Display state of each controller button
-			s3eDebugPrint(x, y, "Controller buttons pressed:", 0);
-			x += 20;
-			y += lineHeight;
-			for (int i = 0; i < IwGameController::Button::MAX; i++)
-			{
-                Button::eButton buttonId = (Button::eButton)i;
-				
-                if (!CIwGameController::GetButtonDisplayName(name, buttonId, true))
-					strcpy(name, "error");
-				
-                s3eDebugPrintf(x, y, 1, "Button: %s (%d) is %s", name, i, controller->GetButtonState(controllerHandle, buttonId) ? "down" : "up");
+                y = yStart;
                 
-				y += lineHeight;
-			}
+				controllerHandle = controller->GetControllerByIndex(n);
+                
+                if (controllerHandle)
+                {
+                    s3eDebugPrintf(x, y, 1, "Using controller at index: %d", n);
+                    
+                    controller->SetProperty(controllerHandle, IwGameController::Property::REPORTS_ABSOLUTE_DPAD_VALUES, true);
+                }
+                else
+                    s3eDebugPrintf(x, y, 1, "Could not get a controller to use :(");
+                
+                y += lineHeight*2;
+                
+                // Display state of each axis
+                s3eDebugPrint(x, y, "Axis positions:", 0);
+                x += 20;
+                y += lineHeight;
+                for (int i = 0; i < IwGameController::Axis::MAX; i++)
+                {
+                    Axis::eAxis axisId = (Axis::eAxis)i;
+                    
+                    if (!CIwGameController::GetAxisDisplayName(name, axisId, true))
+                        strcpy(name, "error");
+                    
+                    s3eDebugPrintf(x, y, 1, "Axis: %s (%d) = %f", name, i, controller->GetAxisValue(controllerHandle, axisId));
+                    
+                    y += lineHeight;
+                }
+                
+                y += lineHeight;
+                x = xStart;
+                
+                // Display state of each controller button
+                s3eDebugPrint(x, y, "Controller buttons pressed:", 0);
+                x += 20;
+                y += lineHeight;
+                for (int i = 0; i < IwGameController::Button::MAX; i++)
+                {
+                    Button::eButton buttonId = (Button::eButton)i;
+                    
+                    if (!CIwGameController::GetButtonDisplayName(name, buttonId, true))
+                        strcpy(name, "error");
+                    
+                    s3eDebugPrintf(x, y, 1, "Button: %s (%d) is %s", name, i, controller->GetButtonState(controllerHandle, buttonId) ? "down" : "up");
+                    
+                    y += lineHeight;
+                }
+                
+                n++;
+                x += 500;
+                xStart = x;
+            }
 		}
 
         int listStartY;
@@ -238,8 +247,9 @@ int main()
 		y = maxY;
         */
 
+        x = 20;
+        y += lineHeight;
 		listStartY = y;
-		x = 20;
 
 		// Display last few keys that were pressed down
 		s3eDebugPrint(x, y, "Keys pressed:", 0);

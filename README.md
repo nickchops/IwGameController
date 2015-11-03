@@ -15,10 +15,10 @@ Currently, it supports:
 The Quick API is a simple wrapper around the C++ one, with the usual shortened
 naming scheme. Quick version supports all the C++ features.
 
-**NB:** This is relatively untested and also the C++ part is a bit overkill
-in design (based on IwBilling). I may trim it down to be leaner/faster so API
-is subject to change! Likely to also change the Quick part to use strings like
-init("any") getButtonState("A") etc.
+For tvOS (not publicly supported yet!) *any* controller will return true for
+the DPAD_TOUCH button state if one remote has its pad touched. This is
+because those events come through a separate API not tied to the controller.
+Check the type of the controller before checking its DPAD_TOUCH state.
 
 
 Requirements and setup for C++ and Quick
@@ -37,11 +37,7 @@ You need the following extensions:
 
 #### For Quick only
 
-- Marmalade SDK 7.4 or newer is needed for Quick extension improvements.
-   
-- You need scripts for rebuilding Quick binaries. Get these from
-  https://github.com/nickchops/MarmaladeQuickRebuildScripts Copy those to the
-  root *quick* folder in the SDK.
+- Marmalade SDK 7.7 or newer for Marmalade Quick extension improvements.
 
 
 ### Add the module and extensions to your Marmalade search path
@@ -122,47 +118,40 @@ Type button and axis values are enums:
 
 See IwGameController.h for type/button/axis values and additional functions.
 
-**void    IwGameController::IsAvailable(type)**
+**void    controller->IsSupported(type)**
 
 - Check controllers are supported on device. Can ask for particular type or
   leave blank for any type.
 
-**void    IwGameController::Init(type)**
+**void    IwGameController::Create(type)**
+  Creates a CIwGameController subclass that uses the default extension and device
+  type for the OS the app is running on, or the "best" (most features/device
+  OEM) available if the platform supports many types.
 
-- Initialise system. Must be called before any following functions. By default
-  it uses the current platform's extension, or the "best" (most features/device
-  OEM)available if platform supports many types.
+  Alternatively you can instantiate a specific type using, for exmaple:
+  new CIwGameControllerIOS()
 
-**void    IwGameController::StartFrame()**
+  Other calls below are methods of the CIwGameController objects.
 
-- You must call this at the start of each update loop so that the get
-  button/axis values are updated
+**CIwGameControllerHandle*    controller->GetControllerByIndex(int index)**
 
-**bool    IwGameController::SelectControllerByPlayer(int player)**
+- Select controller by index (1-4 usually) This returns a handle that must be
+  passed to most other functions to query states.
 
-- Select controller by Player (1-4) to get states for
+**int     controller->GetControllerCount()**
 
-**int     IwGameController::GetPlayerCount()**
+- Get number of controllers
 
-- Get number of players
-
-**bool    IwGameController::GetButtonState(int button)**
+**bool    controller->GetButtonState(CIwGameControllerHandle handle, Button::eButton button)**
 
 - Get button state. True is down/pressed, false is up/released.
   Includes direction pad presses. D-pad and sticks can also
   have centre press states.
 
-**float   IwGameController::GetAxisValue(int axis)**
+**float   controller->GetAxisValue(CIwGameControllerHandle handle, Axis::eAxis axis)**
 
 - Get value from -1 to 1 indicating how far stick/pad is pressed along an axis.
   -1 is left/bottom, 0 centered and 1 is right/top.
-
-**void IwGameController::SetPropagateButtonsToKeyboard(bool propagate)**
-
-- If set true, on controller button presses regular s3eKeyboard events/states
-  for the pressed button will still occur. This only affects platforms that
-  use the same key events internally for keyboard and controller (eg Android)
-  If set false, no s3eKeyboard event will happen. Default is true.
 
 
 Using the Quick API
@@ -177,14 +166,22 @@ deployed.
 
 Quick functions behave like their similarly-named C++ versions:
 
-        gameController.isAvailable()
+        gameController.isSupported()
         gameController.init(type)
         gameController.startFrame()
-        gameController.selectControllerByPlayer(int player)
+        handle = gameController.getControllerByIndex(int index)
         gameController.getMaxControllers()
-        gameController.getPlayerCount()
-        gameController.getButtonState(int button)
-        gameController.getAxisValue(int axis)
+        gameController.getButtonState(handle, button)
+        gameController.getAxisValue(handle, axis)
+        etc
+
+gameController is a static API rather than using objects. You need to call
+init() before other functions or they will jsut return nil.
+
+Handles are opaque userdata types. Just pass them around - you cant directly
+alter them
+
+Buttons, axis etc are all numbers
 
 See quick/QGameController.h for types, axes and buttons. Use like this:
 

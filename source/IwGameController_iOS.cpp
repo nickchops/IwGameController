@@ -102,8 +102,10 @@ namespace IwGameController
 		{
 		case Property::REPORTS_ABSOLUTE_DPAD_VALUES:
 			s3eIOSControllerSetReportsAbsoluteDpadValues((s3eIOSController*)handle, value == 1 ? true : false);
+            break;
 		case Property::ALLOWS_ROTATION:
 			s3eIOSControllerSetAllowsRotation((s3eIOSController*)handle, value == 1 ? true : false);
+            break;
 		default:
 			break;
 		}
@@ -128,7 +130,9 @@ namespace IwGameController
     {
 		if (!handle)
 			return false;
-
+        
+        s3ePointerState state;
+        
         switch (button)
         {
         case Button::A:
@@ -156,7 +160,7 @@ namespace IwGameController
         case Button::Y:
             return s3eIOSControllerGetButtonState((s3eIOSController*)handle, S3E_IOSCONTROLLER_BUTTON_Y);
         case Button::LEFT_STICK_UP:
-            return s3eIOSControllerGetButtonState((s3eIOSController*)handle, S3E_IOSCONTROLLER_BUTTON_RIGHT_THUMBSTICK_UP);
+            return s3eIOSControllerGetButtonState((s3eIOSController*)handle, S3E_IOSCONTROLLER_BUTTON_LEFT_THUMBSTICK_UP);
         case Button::LEFT_STICK_DOWN:
             return s3eIOSControllerGetButtonState((s3eIOSController*)handle, S3E_IOSCONTROLLER_BUTTON_LEFT_THUMBSTICK_DOWN);
         case Button::LEFT_STICK_LEFT:
@@ -172,7 +176,8 @@ namespace IwGameController
         case Button::RIGHT_STICK_RIGHT:
             return s3eIOSControllerGetButtonState((s3eIOSController*)handle, S3E_IOSCONTROLLER_BUTTON_RIGHT_THUMBSTICK_RIGHT);
         case Button::DPAD_TOUCH:
-            return s3ePointerGetTouchState(0) & S3E_POINTER_STATE_DOWN;
+            state = s3ePointerGetTouchState(0);
+            return (state & S3E_POINTER_STATE_DOWN);
         default:
             return false;
         }
