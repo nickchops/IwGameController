@@ -2,7 +2,10 @@
 #include "IwDebug.h"
 #include "IwGameController.h"
 #include "IwGameController_Any.h"
-#include <string.h>
+#include <iostream>
+#include <string>
+#include <stdio.h>
+#include <time.h>
 
 using namespace IwGameController;
 
@@ -11,9 +14,9 @@ using namespace IwGameController;
 
 // Last 5 controller button presses
 #define NUM_EVENTS_TO_SHOW 5
-static int g_ButtonsPresesed[NUM_EVENTS_TO_SHOW];
+static Button::eButton g_ButtonsPresesed[NUM_EVENTS_TO_SHOW];
 static int g_NumButtons = 0;
-static int g_ButtonsReleased[NUM_EVENTS_TO_SHOW];
+static Button::eButton g_ButtonsReleased[NUM_EVENTS_TO_SHOW];
 static int g_NumButtonsReleased = 0;
 
 // Last 5 generic key presses
@@ -22,21 +25,29 @@ static int g_NumKeys = 0;
 static s3eKey g_KeysReleased[NUM_EVENTS_TO_SHOW];
 static int g_NumKeysReleased = 0;
 
+static char g_LastEvent[128] = "NONE";
 
-static int32 controllerHandler(void* sys, void*)
+// Get current date/time, format is YYYY-MM-DD.HH:mm:ss
+const std::string currentDateTime()
 {
-    /*
-    TODO
-    s3eAndroidControllerButtonEvent* event = (s3eAndroidControllerButtonEvent*)sys;
+    time_t     now = time(0);
+    struct tm  tstruct;
+    char       buf[80];
+    tstruct = *localtime(&now);
+    strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
+    return buf;
+}
 
-    if (event->m_Pressed) // a key state changed from up to down
+static void ButtonHandler (CIwGameControllerButtonEvent* data, void* userdata)
+{
+    if (data->m_Pressed) // a key state changed from up to down
     {
         if (g_NumButtons < NUM_EVENTS_TO_SHOW)
             g_NumButtons++;
 
         // Move previous entries down through the array and add new one at end
         memmove(g_ButtonsPresesed+1, g_ButtonsPresesed, (NUM_EVENTS_TO_SHOW - 1) * sizeof(int));
-        g_ButtonsPresesed[0] = event->m_Button;
+        g_ButtonsPresesed[0] = data->m_Button;
     }
     else // state changed from down to up
     {
@@ -44,10 +55,24 @@ static int32 controllerHandler(void* sys, void*)
             g_NumButtonsReleased++;
 
         memmove(g_ButtonsReleased+1, g_ButtonsReleased, (NUM_EVENTS_TO_SHOW - 1) * sizeof(int));
-        g_ButtonsReleased[0] = event->m_Button;
+        g_ButtonsReleased[0] = data->m_Button;
     }
-    */
-    return 0;
+}
+
+
+static void ConnectHandler (CIwGameControllerHandle* data, void* userdata)
+{
+    sprintf(g_LastEvent, "Controller connected (%s)", currentDateTime().c_str());
+}
+
+static void DisconnectHandler (CIwGameControllerHandle* data, void* userdata)
+{
+    sprintf(g_LastEvent, "Controller disconnected (%s)", currentDateTime().c_str());
+}
+
+static void PauseHandler (CIwGameControllerHandle* data, void* userdata)
+{
+    sprintf(g_LastEvent, "Pause pressed (%s)", currentDateTime().c_str());
 }
 
 static int32 keyHandler(void* sys, void*)
@@ -89,18 +114,20 @@ int main()
     int fontScale = scale > 1 ? scale-1 : 1;
     s3eDebugSetInt(S3E_DEBUG_FONT_SCALE, fontScale);
 
-    //TODO: use IwGameController equivalents here
-	//s3eAndroidControllerRegister(S3E_ANDROIDCONTROLLER_CALLBACK_BUTTON, controllerHandler,  NULL);
-    s3eKeyboardRegister(S3E_KEYBOARD_KEY_EVENT, keyHandler, NULL);
+    s3eKeyboardRegister(S3E_KEYBOARD_KEY_EVENT, keyHandler, NULL); // for key vs controller comparison on Android
 
 	CIwGameController* controller = IwGameController::Create();
 	CIwGameControllerHandle* controllerHandle = NULL;
     
-	
-	// Use to disable s3eKeyboard events
-	//if (controller)
-	//    controller->SetPropagateButtonsToKeyboard(false);
+    if (controller)
+    {
+        controller->SetConnectCallback(ConnectHandler, NULL);
+        controller->SetDisconnectCallback(DisconnectHandler, NULL);
+        controller->SetPauseCallback(PauseHandler, NULL);
+        controller->SetButtonCallback(ButtonHandler, NULL);
 
+    }
+    
     while (!s3eDeviceCheckQuitRequest())
     {
         s3eKeyboardUpdate();
@@ -114,6 +141,9 @@ int main()
 		int x = 20;
 		int y = 20;
 		char name[128];
+        
+        int listStartY;
+        int maxY = y;
 
 		if (!controller)
 		{
@@ -137,17 +167,19 @@ int main()
 
             // Realistically you wouldn't do this controller discovery on every loop!
 			int n = 0;
-			while (n < numControllers && n < 2) //just two will fit on most screens..
+			while (n < numControllers && n < 2) //just showing two atm to fit on most screens..
 			{
                 y = yStart;
                 
 				controllerHandle = controller->GetControllerByIndex(n);
                 
-                if (controllerHandle)
+                // No handle is currently valid for platforms where only one controller is supported
+                // TODO: might want to force those to return handle = 1 or similar.
+                if (controllerHandle || numControllers == 1 && controller->GetMaxControllers() == 1)
                 {
                     s3eDebugPrintf(x, y, 1, "Using controller at index: %d", n);
                     
-                    controller->SetProperty(controllerHandle, IwGameController::Property::REPORTS_ABSOLUTE_DPAD_VALUES, true);
+                    controller->SetProperty(controllerHandle, IwGameController::Property::REPORTS_ABSOLUTE_DPAD_VALUES, true); //safe to call with no handle
                 }
                 else
                     s3eDebugPrintf(x, y, 1, "Could not get a controller to use :(");
@@ -193,59 +225,52 @@ int main()
                 x += 500;
                 xStart = x;
             }
-		}
+            
+            // ----------------- Controller button states from event/callbacks not polling -----------------
+            y += lineHeight;
+            listStartY = y;
+            x = 20;
 
-        int listStartY;
-        //int maxY;
-        
-		// ----------------- Controller button states from event/callbacks not polling - not yet supported in API ---------------------
-        
-        /*
-        y += lineHeight;
-        listStartY = y;
-        x = 20;
+            // Display last few Buttons that were pressed down
+            s3eDebugPrint(x, y, "Buttons pressed:", 0);
+            x += 20;
+            y += lineHeight;
+            for (int j = g_NumButtons-1; j >= 0; j--)
+            {
+                Button::eButton button = g_ButtonsPresesed[j];
+                controller->GetButtonDisplayName(name, button, true);
+                s3eDebugPrintf(x, y, 1, "Button: %s (%d)", name, button);
 
-		// Display last few Buttons that were pressed down
-		s3eDebugPrint(x, y, "Buttons pressed:", 0);
-		x += 20;
-		y += lineHeight;
-		for (int j = g_NumButtons-1; j >= 0; j--)
-		{
-			int button = g_ButtonsPresesed[j];
-			IwGameController::GetButtonDisplayName(name, button);
-			s3eDebugPrintf(x, y, 1, "Button: %s (%d)", name, button);
+                y += lineHeight;
+            }
+            y += lineHeight;
+            
+            maxY = y;
 
-			y += lineHeight;
-		}
-        y += lineHeight;
-		
-        maxY = y;
+            y = listStartY;
+            x = s3eSurfaceGetInt(S3E_SURFACE_WIDTH)/2 + 20;
 
-		y = listStartY;
-		x = s3eSurfaceGetInt(S3E_SURFACE_WIDTH)/2 + 20;
+            // Display last few Buttons that were released
+            s3eDebugPrint(x, y, "Buttons released:", 0);
+            x += 20;
+            y += lineHeight;
+            for (int k = g_NumButtonsReleased-1; k >= 0; k--)
+            {
+                Button::eButton button = g_ButtonsReleased[k];
+                controller->GetButtonDisplayName(name, button, true);
 
-		// Display last few Buttons that were released
-		s3eDebugPrint(x, y, "Buttons released:", 0);
-		x += 20;
-		y += lineHeight;
-		for (int k = g_NumButtonsReleased-1; k >= 0; k--)
-		{
-			int button = g_ButtonsReleased[k];
-			IwGameController::GetButtonDisplayName(name, button);
+                s3eDebugPrintf(x, y, 1, "Button: %s (%d)", name, button);
 
-			s3eDebugPrintf(x, y, 1, "Button: %s (%d)", name, button);
-
-			y += lineHeight;
-		}
-        y += lineHeight;
-		
-        if (y > maxY) maxY = y;
-        
+                y += lineHeight;
+            }
+            y += lineHeight;
+            
+            if (y > maxY) maxY = y;
+        }
 
 		// ----------------- Normal keys states for comparison ---------------------
 
 		y = maxY;
-        */
 
         x = 20;
         y += lineHeight;
@@ -287,7 +312,17 @@ int main()
 
 			y += lineHeight;
 		}
+        
+        
+        // ----------------- Controller Events ---------------------
+        
+        x = 20;
+        y += lineHeight;
+        s3eDebugPrintf(x, y, 1, "Last event:%s", g_LastEvent);
 
+        
+        // ----------------- Render ---------------------
+        
 		s3eSurfaceShow();
 
         // Sleep for 0ms to allow the OS to process events etc.

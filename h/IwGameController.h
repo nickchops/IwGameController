@@ -132,27 +132,58 @@ namespace IwGameController
 	// Use GetMaxControllers() == 1 to check if handles are needed.
     typedef struct CIwGameControllerHandle CIwGameControllerHandle;
 
+    // Callbacks for controller conenct/disconnect/pause events.
+    // Supported on iOS only atm.
+    //
+    // TODO: emulate event->pause key press on iOS and pause key -> event on other platforms.
+    //
+    // Note that you may not get a "connected" event for controllers already present
+    // on app startup, so still need to query GetControllerCount() and GetControllerByIndex() at the
+    // start.
+    //
+    // For platforms supporting multiple controllers, eg. iOS, you must use these callbacks to
+    // avoid subsequently calling polling functions with handles that are no longer valid.
+    // TODO: might need to retain/release iOS handles in connect/disconnect notifications
+    //       inside in s3eIOSController. Needs testing....
 	typedef void(*IwGameControllerConnectCallback)(CIwGameControllerHandle* data, void* userdata);
 	typedef void(*IwGameControllerDisconnectCallback)(CIwGameControllerHandle* data, void* userdata);
 	typedef void(*IwGameControllerPauseCallback)(CIwGameControllerHandle* data, void* userdata);
     
+    // Events for buttons and axis not yet supported on any platforms. May want a property
+    // to allow checking if platform supports events and/or may want to simulate events via
+    // enqueuing callbacks inside StartFrame()
+     
     /**
-    Button press/release callback data
-    */
+     * Button press/release callback data
+     */
     struct CIwGameControllerButtonEvent
     {
 		CIwGameControllerHandle* m_Controller;
-        int         m_Button;
-        int         m_Pressed;
+        Button::eButton          m_Button;
+        int                      m_Pressed;
         CIwGameControllerButtonEvent();
     };
 
     /**
-    Button press/release callback
-    */
-	typedef void(*IwGameControllerButtonCallback)(CIwGameControllerButtonEvent* data, void* userdata);
+     * Button press/release callback
+	 */
+    typedef void(*IwGameControllerButtonCallback)(CIwGameControllerButtonEvent* data, void* userdata);
     
-    //TODO: axis callback if any platforms support them
+    /**
+     * Axis move callback data
+     */
+    struct CIwGameControllerAxisEvent
+    {
+        CIwGameControllerHandle* m_Controller;
+        Axis::eAxis              m_Axis;
+        float                    m_Value;
+        CIwGameControllerAxisEvent();
+    };
+     
+    /**
+     * Axis move callback
+     */
+    typedef void(*IwGameControllerAxisCallback)(CIwGameControllerAxisEvent* data, void* userdata);
     
     /**
     Abstract class that is implemented for each extension. Create class of desired type
@@ -176,24 +207,31 @@ namespace IwGameController
 		static IwGameControllerDisconnectCallback    s_DisconnectCallback;
 		static IwGameControllerPauseCallback         s_PauseCallback;
 		static IwGameControllerButtonCallback        s_ButtonCallback;
+        static IwGameControllerAxisCallback        s_AxisCallback;
         
 		static void*                                 s_ConnectCallbackUserdata;
 		static void*                                 s_DisconnectCallbackUserdata;
 		static void*                                 s_PauseCallbackUserdata;
 		static void*                                 s_ButtonCallbackUserdata;
+        static void*                                 s_AxisCallbackUserdata;
         
         static void                           NotifyConnect(CIwGameControllerHandle* data);
 		static void                           NotifyDisconnect(CIwGameControllerHandle* data);
         static void                           NotifyPause(CIwGameControllerHandle* data);
         static void                           NotifyButton(CIwGameControllerButtonEvent* data);
-        
-        //TODO - axis callbacks? if any platforms support them...
+        static void                           NotifyAxis(CIwGameControllerAxisEvent* data);
         
     public:
-		void setConnectCallback(IwGameControllerConnectCallback callback, void* userdata)       { s_ConnectCallback = callback; s_ConnectCallbackUserdata = userdata; }
-		void setDisconnectCallback(IwGameControllerDisconnectCallback callback, void* userdata) { s_DisconnectCallback = callback; s_DisconnectCallbackUserdata = userdata; }
-		void setPauseCallback(IwGameControllerPauseCallback callback, void* userdata)           { s_PauseCallback = callback; s_PauseCallbackUserdata = userdata; }
-		void SetButtonCallback(IwGameControllerButtonCallback callback, void* userdata)         { s_ButtonCallback = callback; s_ButtonCallbackUserdata = userdata; }
+		void SetConnectCallback(IwGameControllerConnectCallback callback, void* userdata)
+            { s_ConnectCallback = callback; s_ConnectCallbackUserdata = userdata; }
+		void SetDisconnectCallback(IwGameControllerDisconnectCallback callback, void* userdata)
+            { s_DisconnectCallback = callback; s_DisconnectCallbackUserdata = userdata; }
+		void SetPauseCallback(IwGameControllerPauseCallback callback, void* userdata)
+            { s_PauseCallback = callback; s_PauseCallbackUserdata = userdata; }
+		void SetButtonCallback(IwGameControllerButtonCallback callback, void* userdata)
+            { s_ButtonCallback = callback; s_ButtonCallbackUserdata = userdata; }
+        void SetAxisCallback(IwGameControllerAxisCallback callback, void* userdata)
+            { s_AxisCallback = callback; s_AxisCallbackUserdata = userdata; }
     
         // Call every frame before querying to make sure states are up to date
         // Does nothing on some platforms

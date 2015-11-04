@@ -10,11 +10,13 @@ namespace IwGameController
 	IwGameControllerDisconnectCallback CIwGameController::s_DisconnectCallback = NULL;
 	IwGameControllerPauseCallback CIwGameController::s_PauseCallback = NULL;
 	IwGameControllerButtonCallback CIwGameController::s_ButtonCallback = NULL;
+    IwGameControllerAxisCallback CIwGameController::s_AxisCallback = NULL;
 
 	void* CIwGameController::s_ConnectCallbackUserdata = NULL;
 	void* CIwGameController::s_DisconnectCallbackUserdata = NULL;
 	void* CIwGameController::s_PauseCallbackUserdata = NULL;
-	void* CIwGameController::s_ButtonCallbackUserdata = NULL;
+    void* CIwGameController::s_ButtonCallbackUserdata = NULL;
+    void* CIwGameController::s_AxisCallbackUserdata = NULL;
 
     const char* const CIwGameController::s_ButtonNames[Button::MAX] = {
         "A", "B", "X", "Y", "DPadCenter", "DPadUp", "DPadDown", "DPadLeft", "DPadRight", "DPadTouch",
@@ -32,12 +34,14 @@ namespace IwGameController
 		s_ConnectCallback = NULL;
 		s_DisconnectCallback = NULL;
 		s_PauseCallback = NULL;
-		s_ButtonCallback = NULL;
+        s_ButtonCallback = NULL;
+        s_AxisCallback = NULL;
 
 		s_ConnectCallbackUserdata = NULL;
 		s_DisconnectCallbackUserdata = NULL;
 		s_PauseCallbackUserdata = NULL;
-		s_ButtonCallbackUserdata = NULL;
+        s_ButtonCallbackUserdata = NULL;
+        s_AxisCallbackUserdata = NULL;
 	}
 
 	Type::eType CIwGameController::GetType() const
@@ -49,7 +53,7 @@ namespace IwGameController
 	{
 		const char* name;
 
-        int i = (int)button;
+        unsigned int i = (int)button;
 
         if (i > sizeof(s_ButtonNames)) // shouldnt happen but check in case we initialise the names wrong
             return false;
@@ -70,7 +74,7 @@ namespace IwGameController
 	{
         const char* name;
 
-        int i = (int)axis;
+        unsigned int i = (int)axis;
 
         if (i > sizeof(s_AxisNames)) // shouldnt happen but check in case we initialise the names wrong
             return false;
@@ -112,12 +116,23 @@ namespace IwGameController
 		if (s_ButtonCallback)
 			s_ButtonCallback(data, s_ButtonCallbackUserdata);
 	}
+    
+    void CIwGameController::NotifyAxis(CIwGameControllerAxisEvent* data)
+    {
+        if (s_AxisCallback)
+            s_AxisCallback(data, s_AxisCallbackUserdata);
+    }
 
 	// Data constructors
 
 	CIwGameControllerButtonEvent::CIwGameControllerButtonEvent()
-	: m_Controller(NULL), m_Button(0), m_Pressed(0)
+    : m_Controller(NULL), m_Button(Button::MAX), m_Pressed(0)
 	{
 	}
+    
+    CIwGameControllerAxisEvent::CIwGameControllerAxisEvent()
+    : m_Controller(NULL), m_Axis(Axis::MAX), m_Value(0.0)
+    {
+    }
 
 }   // namespace IwGameController
