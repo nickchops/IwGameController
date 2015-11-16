@@ -15,3 +15,8 @@
 #
 # Some conditional operations are also permitted, see the
 # S3E documentation for details.
+
+# Indicates we want to use wifi remote app as the controller
+# Comment out to pick up connected regualr game pad instead
+[GameController]
+UseWifiRemote="10.79.2.195" 

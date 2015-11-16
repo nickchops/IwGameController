@@ -7,6 +7,9 @@
 #include <stdio.h>
 #include <time.h>
 
+#include "SocketsUDP.h"
+using namespace SocketsUDP;
+
 using namespace IwGameController;
 
 //Based on s3eAndroidController and s3eKeyboard examples.
@@ -116,7 +119,45 @@ int main()
 
     s3eKeyboardRegister(S3E_KEYBOARD_KEY_EVENT, keyHandler, NULL); // for key vs controller comparison on Android
 
-	CIwGameController* controller = IwGameController::Create();
+
+    // Simple test connection over direct IP address
+    // For now, this isnt even used as we are only listening (from any address) for data, so any value is fine
+    char targetIP[50]; //An IP string max length = 45
+    //SocketAddress targetAddress;
+    bool usingRemote = true;
+    if (s3eConfigGetString("GameController", "UseWifiRemote", targetIP) == S3E_RESULT_ERROR)
+        usingRemote = false;
+    /*else
+    {
+        targetAddress = SocketAddress(targetIP, CIwGameControllerMarmaladeRemote::MARMALADE_REMOTE_PORT);
+    }*/
+
+    CIwGameController* controller;
+    if (usingRemote)
+    {
+        // Get host IP address of this device (creates a socket, does a query, closes socket)
+        // Just to display if setting up Remote app manually to target this device
+        in_addr localAddr;
+        usingRemote = GetPrimaryAddr(localAddr);
+        if (usingRemote)
+        {
+            char localAddrString[50];
+            sprintf(localAddrString, inet_ntoa(localAddr));
+            IwTrace(GAME_CONTROLLER, ("Local address: %s", localAddrString));
+
+            if (usingRemote)
+            {
+                controller = new CIwGameControllerMarmaladeRemote();
+                usingRemote = ((CIwGameControllerMarmaladeRemote*)controller)->Connect();
+                if (!usingRemote)
+                    delete controller;
+            }
+        }
+    }
+
+    if (!usingRemote)
+        controller = IwGameController::Create();
+
 	CIwGameControllerHandle* controllerHandle = NULL;
     
     if (controller)

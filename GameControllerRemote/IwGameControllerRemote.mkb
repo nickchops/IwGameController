@@ -1,0 +1,31 @@
+#!/usr/bin/env mkb
+
+subprojects
+{
+    iwutil
+    iw2dscenegraphcore
+    iw2dscenegraph
+    iwgx
+    iwresmanager
+    iwtween
+    SocketsUDP
+    iwgamecontroller_RemoteOnly
+}
+
+files
+{
+    IwGameControllerRemote.cpp
+}
+
+assets
+{
+    (data)
+    .
+
+    (data-ram\data-gles1)
+    .
+}
+
+deployment
+{
+}

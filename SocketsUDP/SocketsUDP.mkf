@@ -1,0 +1,8 @@
+#!/usr/bin/env mkb
+files
+{
+    SocketsUDP.h
+    SocketsUDP.cpp
+}
+
+includepath .

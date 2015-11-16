@@ -1,0 +1,3 @@
+
+[GameController]
+UseWifiRemote       Manually flag if we are using wifi remote app as controller

@@ -12,9 +12,6 @@ defines
 
 subprojects
 {
-    s3eAndroidController
-    s3eIOSController
-    s3eHidController
     SocketsUDP
 }
 
@@ -33,18 +30,10 @@ files
     [h]
     (h)
     IwGameController.h
-    IwGameController_Any.h
-    IwGameController_Android.h
-    IwGameController_iOS.h
-    IwGameController_DesktopHid.h
     IwGameController_MarmaladeRemote.h
     
     [source]
     (source)
     IwGameController.cpp
-    IwGameController_Any.cpp
-    IwGameController_Android.cpp
-    IwGameController_iOS.cpp
-    IwGameController_DesktopHid.cpp
     IwGameController_MarmaladeRemote.cpp
 }

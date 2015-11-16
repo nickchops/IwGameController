@@ -11,6 +11,10 @@
 #include "s3eIOSController.h"
 #include "IwGameController.h"
 
+#ifndef S3E_OS_ID_TVOS
+#define S3E_OS_ID_TVOS 32
+#endif
+
 namespace IwGameController {
     
 	class CIwGameControllerIOS : public CIwGameController
@@ -34,7 +38,6 @@ namespace IwGameController {
 
 		CIwGameControllerHandle* GetControllerByIndex(int index);
 		CIwGameControllerHandle* GetControllerByPlayer(int player);
-		void    SetPropagateButtonsToKeyboard(bool propagate);
 	
 		bool    IsButtonSupported(CIwGameControllerHandle* handle, Button::eButton button);
 		bool    IsAxisSupported(CIwGameControllerHandle* handle, Axis::eAxis axis);

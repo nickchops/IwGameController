@@ -1,13 +1,15 @@
 #!/usr/bin/env mkb
-files
-{
-    IwGameControllerExample.cpp
-}
 
 subprojects
 {
     iwutil
     iwgamecontroller
+    SocketsUDP
+}
+
+files
+{
+    IwGameControllerExample.cpp
 }
 
 deployment

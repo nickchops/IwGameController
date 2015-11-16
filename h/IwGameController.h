@@ -37,6 +37,7 @@ namespace IwGameController
             ANDROID_AMAZON,
             IOS,
             DESKTOP_HID,
+            MARMALADE_REMOTE,
             NONE                     // Output only - indicates no controller type has been initialised. TODO: remove this since dropping singleton style API?
         };
     };

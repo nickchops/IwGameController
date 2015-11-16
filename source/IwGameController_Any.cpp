@@ -23,6 +23,9 @@ namespace IwGameController
     
 		else if (type == Type::DESKTOP_HID)
 			return s3eHidControllerAvailable() == S3E_TRUE;
+        
+        if (type == Type::MARMALADE_REMOTE)
+			return S3E_TRUE;
     
 		else if (type == Type::ANY)
 		{
@@ -43,6 +46,8 @@ namespace IwGameController
 		}
 		else
 			return false;
+        
+        // Not allowing MarmaladeRemote to be set automatically - have to explicitly ask for it.
 	}
 
 	CIwGameController* Create(Type::eType type)
@@ -76,16 +81,15 @@ namespace IwGameController
 		{
 		case Type::IOS:
 			return new CIwGameControllerIOS();
-			break;
 		case Type::ANDROID_ANY:
 		case Type::ANDROID_GENERIC:
 		case Type::ANDROID_OUYA_EVERYWHERE:
 		case Type::ANDROID_AMAZON:
 			return new CIwGameControllerAndroid(type);
-			break;
 		case Type::DESKTOP_HID:
 			return new CIwGameControllerDesktopHid();
-			break;
+        case Type::MARMALADE_REMOTE:
+            return new CIwGameControllerMarmaladeRemote();
 		default:
 			return NULL;
 		}

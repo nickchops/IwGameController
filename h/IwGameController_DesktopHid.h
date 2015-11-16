@@ -27,7 +27,6 @@ namespace IwGameController {
 
 		CIwGameControllerHandle* GetControllerByIndex(int index);
 		CIwGameControllerHandle* GetControllerByPlayer(int player);
-		void    SetPropagateButtonsToKeyboard(bool propagate);
 
 		bool    IsButtonSupported(CIwGameControllerHandle* handle, Button::eButton button);
 		bool    IsAxisSupported(CIwGameControllerHandle* handle, Axis::eAxis axis);

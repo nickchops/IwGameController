@@ -1,0 +1,4 @@
+
+[ControllerRemote]
+UseTCP	          Use TCP instead of UDP. Int 0 = no, 1 = yes
+TargetIPAddress   Fixed IP address to send data to.

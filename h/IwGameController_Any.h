@@ -8,6 +8,7 @@
 #include "IwGameController_Android.h"
 #include "IwGameController_iOS.h"
 #include "IwGameController_DesktopHid.h"
+#include "IwGameController_MarmaladeRemote.h"
 
 #include <string>
 #include "s3e.h"
