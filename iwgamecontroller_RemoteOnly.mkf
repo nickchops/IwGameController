@@ -1,3 +1,8 @@
+# Alternative to iwgamecontroller.mkf for use specifically by the
+# remote app (or your own remote app)
+# This version doesn't include any of the platform extensions
+# or classes since they are not needed and would bloat the app
+
 options
 {
 }
@@ -13,6 +18,7 @@ defines
 subprojects
 {
     SocketsUDP
+    s3eZeroConf
 }
 
 includepath

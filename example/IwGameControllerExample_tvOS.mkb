@@ -1,21 +1,25 @@
 #!/usr/bin/env mkb
-files
-{
-    IwGameControllerExample.cpp
-}
 
+# Until official Marmalade SDK support for tvOS is out
+# you need to define this in to support it in the 
+# s3eIOSController extension
 defines
 {
-    MARMALADE_TVOS
+    SDK_SUPPORTS_TVOS
 }
 
 subprojects
 {
     iwutil
-    iwgamecontroller
+    IwGameController
+    s3eDialog
+}
+
+files
+{
+    IwGameControllerExample.cpp
 }
 
 deployment
 {
-	android-custom-activity='com.nickchops.s3eAndroidController.s3eAndroidControllerActivity'
 }

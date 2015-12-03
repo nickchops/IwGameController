@@ -1,3 +1,4 @@
 
 [GameController]
-UseWifiRemote       Manually flag if we are using wifi remote app as controller
+AllowWifiRemoteAppControllers  Accept remote app connections
+AcceptAnyRemoteConnection      Accept connections without zeroconf discovery

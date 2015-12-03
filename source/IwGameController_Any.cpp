@@ -34,6 +34,7 @@ namespace IwGameController
 			switch (os)
 			{
 				case S3E_OS_ID_IPHONE:
+                case S3E_OS_ID_TVOS:
 					return s3eIOSControllerAvailable() == S3E_TRUE;
 				case S3E_OS_ID_ANDROID:
 					return s3eAndroidControllerAvailable() == S3E_TRUE;

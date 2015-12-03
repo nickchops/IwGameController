@@ -146,9 +146,7 @@ namespace IwGameController
     // avoid subsequently calling polling functions with handles that are no longer valid.
     // TODO: might need to retain/release iOS handles in connect/disconnect notifications
     //       inside in s3eIOSController. Needs testing....
-	typedef void(*IwGameControllerConnectCallback)(CIwGameControllerHandle* data, void* userdata);
-	typedef void(*IwGameControllerDisconnectCallback)(CIwGameControllerHandle* data, void* userdata);
-	typedef void(*IwGameControllerPauseCallback)(CIwGameControllerHandle* data, void* userdata);
+    typedef void(*IwGameControllerCallback)(CIwGameControllerHandle* data, void* userdata);
     
     // Events for buttons and axis not yet supported on any platforms. May want a property
     // to allow checking if platform supports events and/or may want to simulate events via
@@ -204,35 +202,35 @@ namespace IwGameController
         
         Type::eType                           m_Type; // TODO: might move this out to the _Any helper?
         
-        static IwGameControllerConnectCallback       s_ConnectCallback;
-		static IwGameControllerDisconnectCallback    s_DisconnectCallback;
-		static IwGameControllerPauseCallback         s_PauseCallback;
-		static IwGameControllerButtonCallback        s_ButtonCallback;
-        static IwGameControllerAxisCallback        s_AxisCallback;
+        IwGameControllerCallback              m_ConnectCallback;
+		IwGameControllerCallback              m_DisconnectCallback;
+		IwGameControllerCallback              m_PauseCallback;
+		IwGameControllerButtonCallback        m_ButtonCallback;
+        IwGameControllerAxisCallback          m_AxisCallback;
         
-		static void*                                 s_ConnectCallbackUserdata;
-		static void*                                 s_DisconnectCallbackUserdata;
-		static void*                                 s_PauseCallbackUserdata;
-		static void*                                 s_ButtonCallbackUserdata;
-        static void*                                 s_AxisCallbackUserdata;
+		void*                                 m_ConnectCallbackUserdata;
+		void*                                 m_DisconnectCallbackUserdata;
+		void*                                 m_PauseCallbackUserdata;
+		void*                                 m_ButtonCallbackUserdata;
+        void*                                 m_AxisCallbackUserdata;
         
-        static void                           NotifyConnect(CIwGameControllerHandle* data);
-		static void                           NotifyDisconnect(CIwGameControllerHandle* data);
-        static void                           NotifyPause(CIwGameControllerHandle* data);
-        static void                           NotifyButton(CIwGameControllerButtonEvent* data);
-        static void                           NotifyAxis(CIwGameControllerAxisEvent* data);
+        void                           NotifyConnect(CIwGameControllerHandle* data);
+		void                           NotifyDisconnect(CIwGameControllerHandle* data);
+        void                           NotifyPause(CIwGameControllerHandle* data);
+        void                           NotifyButton(CIwGameControllerButtonEvent* data);
+        void                           NotifyAxis(CIwGameControllerAxisEvent* data);
         
     public:
-		void SetConnectCallback(IwGameControllerConnectCallback callback, void* userdata)
-            { s_ConnectCallback = callback; s_ConnectCallbackUserdata = userdata; }
-		void SetDisconnectCallback(IwGameControllerDisconnectCallback callback, void* userdata)
-            { s_DisconnectCallback = callback; s_DisconnectCallbackUserdata = userdata; }
-		void SetPauseCallback(IwGameControllerPauseCallback callback, void* userdata)
-            { s_PauseCallback = callback; s_PauseCallbackUserdata = userdata; }
+		void SetConnectCallback(IwGameControllerCallback callback, void* userdata)
+            { m_ConnectCallback = callback; m_ConnectCallbackUserdata = userdata; }
+		void SetDisconnectCallback(IwGameControllerCallback callback, void* userdata)
+            { m_DisconnectCallback = callback; m_DisconnectCallbackUserdata = userdata; }
+		void SetPauseCallback(IwGameControllerCallback callback, void* userdata)
+            { m_PauseCallback = callback; m_PauseCallbackUserdata = userdata; }
 		void SetButtonCallback(IwGameControllerButtonCallback callback, void* userdata)
-            { s_ButtonCallback = callback; s_ButtonCallbackUserdata = userdata; }
+            { m_ButtonCallback = callback; m_ButtonCallbackUserdata = userdata; }
         void SetAxisCallback(IwGameControllerAxisCallback callback, void* userdata)
-            { s_AxisCallback = callback; s_AxisCallbackUserdata = userdata; }
+            { m_AxisCallback = callback; m_AxisCallbackUserdata = userdata; }
     
         // Call every frame before querying to make sure states are up to date
         // Does nothing on some platforms

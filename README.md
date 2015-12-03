@@ -1,23 +1,40 @@
 IwGameController
 ================
 
-This is a gamepad/controller extension API for the Marmalade C++ and
-Marmalade Quick SDKs. It uses a single API, implemented by various
-platform-specific extensions.
+This is a gamepad/controller extension API for the Marmalade SDK (C++ and
+Quick/Lua). It uses a single API, implemented by various platform-specific
+extensions.
 
 Currently, it supports:
-- Android USB and Bluetooth HID controllers via s3eAndroidController
+
+- Android:
+  - USB and Bluetooth HID controllers via s3eAndroidController
   - Generic support for 1 controller
-  - 4 player support for Amazon Fire TV
-- iOS via modern controller API using s3eIOSController
+  - 4 player support on Amazon Fire TV
+- iOS:
+  - Uses Apple's Game Controller API via s3eIOSController (wifi/bluetooth MFi)
+  - Multiple controller support (4 player currently)
+- Apple TV (tvOS):
+  - Uses same s3eIOSController backed as iOS
+  - Up to two controllers
+  - Supports Siri Remote (micro cotroller type) and MFi game pads
+  - Needs Marmalade SDK that supports Apple TV
 - Windows and Mac desktop HID wired/Bluetooth controllers via s3eHidController
+  - Single controller only currently
 
-The Quick API is a simple wrapper around the C++ one, with the usual shortened
-naming scheme. Quick version supports all the C++ features.
+The Quick API is a  wrapper around the C++ one, with the usual shortened
+naming scheme. Quick supports all the C++ features but not the remote app yet.
 
-For tvOS (not publicly supported yet!) *any* controller will return true for
-the DPAD_TOUCH button state if one remote has its pad touched. This is
-because those events come through a separate API not tied to the controller.
+
+Apple TV (tvOS) caveats
+-----------------------
+
+You currently need to define SDK_SUPPORTS_TVOS in you project to support it.
+This is because the tvOS MKB options are not supported on older SDKs.
+
+For tvOS, *any* controller will return true for the DPAD_TOUCH button state
+if one remote has its pad touched. This is because those events come through
+a separate global API (pointer/touch) and are not tied to the controller.
 Check the type of the controller before checking its DPAD_TOUCH state.
 
 
@@ -33,6 +50,8 @@ You need the following extensions:
     s3eAndroidController, see its readme)
 - https://github.com/nickchops/s3eIOSController
 - https://github.com/nickchops/s3eHidController
+
+Check the s3eAndroidController readme for info on custom activity setup.
 
 
 #### For Quick only
@@ -91,12 +110,6 @@ You must add the following to your app project's MKB file:
         {
             IwGameController
         }
-   
-        deployments
-        {
-            android-custom-activity='com.s3eAndroidController.s3eAndroidController'
-        }
-
 
 #### NB: Custom activity requirement on Android!
 
@@ -107,8 +120,17 @@ This is needed in order to catch key and axis events.
 Using the C++ API
 -----------------
 
-The C++ API uses static functions in a namespace. No need to initialise
-classes (done internally); instead you must call Init before other functions.
+All functions and classes are in the IwGameController namespace.
+
+The C++ API uses a generic CIwGameController class which represents an underlying controller API (iOS, Android, etc) and a CIwGameConstrollerHandle opaque pointer
+which represents an actual connected controller.
+
+Each type of controller (iOs, Android, etc) has its own sub-class, e.g.
+CIwGameControllerAndroid. You can include the header for these (e.g. IwGameController_Android.h) and instantiate these direclty with new.
+
+Or you can use the static Create() fucntion in IwGameController_Any.h
+to return a generic CIwGameController object. By default, Create will
+instantiate the relevant type for the platform.
 
 Type button and axis values are enums:
 
@@ -118,12 +140,14 @@ Type button and axis values are enums:
 
 See IwGameController.h for type/button/axis values and additional functions.
 
-**void    controller->IsSupported(type)**
+Static namespace functions from IwGameController_Any.h
 
-- Check controllers are supported on device. Can ask for particular type or
-  leave blank for any type.
+**void IsSupported(type)**
 
-**void    IwGameController::Create(type)**
+-  Check if controllers are supported on device.
+  Can ask for particular type or leave blank for any type.
+
+**void Create(type)**
   Creates a CIwGameController subclass that uses the default extension and device
   type for the OS the app is running on, or the "best" (most features/device
   OEM) available if the platform supports many types.
@@ -131,27 +155,66 @@ See IwGameController.h for type/button/axis values and additional functions.
   Alternatively you can instantiate a specific type using, for exmaple:
   new CIwGameControllerIOS()
 
-  Other calls below are methods of the CIwGameController objects.
+Calls below are methods of instantiated CIwGameController objects:
 
-**CIwGameControllerHandle*    controller->GetControllerByIndex(int index)**
+**CIwGameControllerHandle* controller->GetControllerByIndex(int index)**
 
 - Select controller by index (1-4 usually) This returns a handle that must be
   passed to most other functions to query states.
 
-**int     controller->GetControllerCount()**
+**int controller->GetControllerCount()**
 
 - Get number of controllers
 
-**bool    controller->GetButtonState(CIwGameControllerHandle handle, Button::eButton button)**
+**bool controller->GetButtonState(CIwGameControllerHandle handle, Button::eButton button)**
 
 - Get button state. True is down/pressed, false is up/released.
   Includes direction pad presses. D-pad and sticks can also
   have centre press states.
 
-**float   controller->GetAxisValue(CIwGameControllerHandle handle, Axis::eAxis axis)**
+**float controller->GetAxisValue(CIwGameControllerHandle handle, Axis::eAxis axis)**
 
 - Get value from -1 to 1 indicating how far stick/pad is pressed along an axis.
   -1 is left/bottom, 0 centered and 1 is right/top.
+
+  
+## The MarmaladeRemote backend
+
+The CIwGameControllerMarmaladeRemote class from
+IwGameController_MarmaladeRemote.h allows another Marmalade built app to
+act as a controller itself.
+
+This works via UDP socket connection on local WiFi using ZeroConf/Bonjour for
+connection. Essentially, you use a remote app as a controller; it finds an app
+using IwGameController via ZeroConf and then streams button/axis data over UDP.
+UDP is used as we care more getting data fast that about loosing some data.
+
+CIwGameControllerMarmaladeRemote objects have an adidtional Connect() function
+to find remote apps and listen for data, turning it into the same button/axis
+events shared by other CIwGaeController classes.
+
+An example "remote app" is provided in the GameControllerRemoteApp folder.
+This provides on screen buttos to mimic real controllers. The
+IwGameController/example app is set up to detect a remote app and connect it as
+a second controller.
+
+Currently the remote app mimics an Apple TV Siri Remote by sending DPAD axis
+values and A, X and START button states. It would be easy to extend to support
+any buttons and axes.
+
+CIwGameControllerMarmaladeRemote only supports one controller at the moment.
+it could be extended to support more.
+
+In order to connect, both apps need to be on a platform that is supported by
+s3eZeroConf. Currently that's iOS, tvOS and Windows Desktop. This means you can
+for example connect two PCs or an iPhone and a PC (nce for debugging). You
+can't have both apps running on the same PC (can't share same socket
+address/port combo) Hopefully somone will extend s3eZeroConf to Android and Mac
+soon...
+
+You can bypass ZeroConf by specifying the target/receiver IP address explicitly.
+This would allow the apps to run on any devices with WiFi, but the user would
+need to enter the address manually.
 
 
 Using the Quick API
@@ -176,10 +239,10 @@ Quick functions behave like their similarly-named C++ versions:
         etc
 
 gameController is a static API rather than using objects. You need to call
-init() before other functions or they will jsut return nil.
+init() before other functions or they will just return nil.
 
 Handles are opaque userdata types. Just pass them around - you cant directly
-alter them
+alter them.
 
 Buttons, axis etc are all numbers
 
@@ -191,7 +254,17 @@ See quick/QGameController.h for types, axes and buttons. Use like this:
         gameController.buttonA
         etc
 
-TODO: I'll probably change these to strings "any" "a" "stickLeftX" etc
+
+TODO
+----
+
+MarmaladeRemote backend needs updating to support multiple controllers.
+
+s3eZeroConf needs extending to support Android and Mac OS X.
+
+The Quick wrapper needs updating to support MarmaladeRemote types.
+
+I'll probably change Quick identifiers to strings ("any" "a" "stickLeftX" etc.)
 since Lua can do fast string compares (compares object addresses).
 
 
@@ -207,7 +280,7 @@ so that the activity *imports* and *extends* your other existing activity
 instead of LoaderActivity. Then re-build the s3eAndroidController extension.
 
 
-------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 (C) 2014 Nick Smith.
 
 All code is provided under the MIT license unless stated otherwise:

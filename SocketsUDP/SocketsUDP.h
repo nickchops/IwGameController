@@ -16,6 +16,8 @@
 #include <netdb.h>
 #include <fcntl.h>
 
+#define SOCKETSUDP_IP_ADDRESS_MAX_LENGTH 46 //45 char max possible plus null term
+
 namespace SocketsUDP
 {
 
@@ -37,6 +39,7 @@ namespace SocketsUDP
         SocketAddress(sockaddr_in* other);
         ~SocketAddress();
         void CleanUp();
+        bool IsValid();
         
         sockaddr_in* GetAddress() const;
         unsigned short GetPort() const;

@@ -16,6 +16,7 @@ subprojects
     s3eIOSController
     s3eHidController
     SocketsUDP
+    s3eZeroConf
 }
 
 includepath

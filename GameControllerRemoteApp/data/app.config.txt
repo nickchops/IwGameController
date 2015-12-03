@@ -1,0 +1,7 @@
+
+[ControllerRemote]
+TargetIPAddress   Fixed IP address to send data to.
+DebugDisplay      Print connection info on screen
+NoConnectDebugUI  Set to 1 for app to just display the main input screen and do nothing else for testing
+KeepAliveTimeout  Set milliseconds to wait for response from receiver before disconenciting defaults to 5000
+MenuIsQuit        If set to 1, pressing the menu button when connected will disconnect rather than sending a menu event to the game.

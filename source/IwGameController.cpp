@@ -6,18 +6,6 @@
 
 namespace IwGameController
 {
-	IwGameControllerConnectCallback CIwGameController::s_ConnectCallback = NULL;
-	IwGameControllerDisconnectCallback CIwGameController::s_DisconnectCallback = NULL;
-	IwGameControllerPauseCallback CIwGameController::s_PauseCallback = NULL;
-	IwGameControllerButtonCallback CIwGameController::s_ButtonCallback = NULL;
-    IwGameControllerAxisCallback CIwGameController::s_AxisCallback = NULL;
-
-	void* CIwGameController::s_ConnectCallbackUserdata = NULL;
-	void* CIwGameController::s_DisconnectCallbackUserdata = NULL;
-	void* CIwGameController::s_PauseCallbackUserdata = NULL;
-    void* CIwGameController::s_ButtonCallbackUserdata = NULL;
-    void* CIwGameController::s_AxisCallbackUserdata = NULL;
-
     const char* const CIwGameController::s_ButtonNames[Button::MAX] = {
         "A", "B", "X", "Y", "DPadCenter", "DPadUp", "DPadDown", "DPadLeft", "DPadRight", "DPadTouch",
         "ShoulderLeft", "ShoulderRight", "StickLeft", "StickRight",
@@ -31,17 +19,17 @@ namespace IwGameController
 	CIwGameController::CIwGameController()
 	: m_Type(Type::NONE)
 	{
-		s_ConnectCallback = NULL;
-		s_DisconnectCallback = NULL;
-		s_PauseCallback = NULL;
-        s_ButtonCallback = NULL;
-        s_AxisCallback = NULL;
+		m_ConnectCallback = NULL;
+		m_DisconnectCallback = NULL;
+		m_PauseCallback = NULL;
+        m_ButtonCallback = NULL;
+        m_AxisCallback = NULL;
 
-		s_ConnectCallbackUserdata = NULL;
-		s_DisconnectCallbackUserdata = NULL;
-		s_PauseCallbackUserdata = NULL;
-        s_ButtonCallbackUserdata = NULL;
-        s_AxisCallbackUserdata = NULL;
+		m_ConnectCallbackUserdata = NULL;
+		m_DisconnectCallbackUserdata = NULL;
+		m_PauseCallbackUserdata = NULL;
+        m_ButtonCallbackUserdata = NULL;
+        m_AxisCallbackUserdata = NULL;
 	}
 
 	Type::eType CIwGameController::GetType() const
@@ -95,32 +83,32 @@ namespace IwGameController
 
 	void CIwGameController::NotifyConnect(CIwGameControllerHandle* data)
 	{
-		if (s_ConnectCallback)
-			s_ConnectCallback(data, s_ConnectCallbackUserdata);
+		if (m_ConnectCallback)
+			m_ConnectCallback(data, m_ConnectCallbackUserdata);
 	}
 
 	void CIwGameController::NotifyDisconnect(CIwGameControllerHandle* data)
 	{
-		if (s_DisconnectCallback)
-			s_DisconnectCallback(data, s_DisconnectCallbackUserdata);
+		if (m_DisconnectCallback)
+			m_DisconnectCallback(data, m_DisconnectCallbackUserdata);
 	}
 
 	void CIwGameController::NotifyPause(CIwGameControllerHandle* data)
 	{
-		if (s_PauseCallback)
-			s_PauseCallback(data, s_PauseCallbackUserdata);
+		if (m_PauseCallback)
+			m_PauseCallback(data, m_PauseCallbackUserdata);
 	}
 
 	void CIwGameController::NotifyButton(CIwGameControllerButtonEvent* data)
 	{
-		if (s_ButtonCallback)
-			s_ButtonCallback(data, s_ButtonCallbackUserdata);
+		if (m_ButtonCallback)
+			m_ButtonCallback(data, m_ButtonCallbackUserdata);
 	}
     
     void CIwGameController::NotifyAxis(CIwGameControllerAxisEvent* data)
     {
-        if (s_AxisCallback)
-            s_AxisCallback(data, s_AxisCallbackUserdata);
+        if (m_AxisCallback)
+            m_AxisCallback(data, m_AxisCallbackUserdata);
     }
 
 	// Data constructors

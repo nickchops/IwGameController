@@ -3,8 +3,8 @@
 subprojects
 {
     iwutil
-    iwgamecontroller
-    SocketsUDP
+    IwGameController
+    s3eDialog
 }
 
 files
@@ -14,5 +14,4 @@ files
 
 deployment
 {
-	android-custom-activity='com.nickchops.s3eAndroidController.s3eAndroidControllerActivity'
 }

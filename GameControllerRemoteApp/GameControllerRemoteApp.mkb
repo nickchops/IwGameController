@@ -14,7 +14,9 @@ subprojects
 
 files
 {
-    IwGameControllerRemote.cpp
+    TouchComponents.h
+    TouchComponents.cpp
+    GameControllerRemoteApp.cpp
 }
 
 assets
@@ -28,4 +30,9 @@ assets
 
 deployment
 {
+    iphone-launch-dir=splash
+    icon=icon.png
+    iphone-icon-extra="icon57.png,icon72.png"
+    caption="Game Remote"
+    version="1.0.0"
 }

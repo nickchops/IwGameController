@@ -6,6 +6,7 @@
 #include <string>
 #include <stdio.h>
 #include <time.h>
+#include "s3eDialog.h"
 
 #include "SocketsUDP.h"
 using namespace SocketsUDP;
@@ -29,6 +30,15 @@ static s3eKey g_KeysReleased[NUM_EVENTS_TO_SHOW];
 static int g_NumKeysReleased = 0;
 
 static char g_LastEvent[128] = "NONE";
+
+CIwGameController* g_controller = NULL;
+CIwGameControllerMarmaladeRemote* g_controllerRemoteApp = NULL;
+
+static int g_InMenu = 0;
+
+#define MAX_CONTROLLERS_TESTED 2
+
+int g_dontBroadcast = 0; // ICF reader. If 1, zeroconf not used and any packets sent to this app's IP address are accepted.
 
 // Get current date/time, format is YYYY-MM-DD.HH:mm:ss
 const std::string currentDateTime()
@@ -65,17 +75,66 @@ static void ButtonHandler (CIwGameControllerButtonEvent* data, void* userdata)
 
 static void ConnectHandler (CIwGameControllerHandle* data, void* userdata)
 {
-    sprintf(g_LastEvent, "Controller connected (%s)", currentDateTime().c_str());
+    if (g_controllerRemoteApp && (CIwGameController*)userdata == g_controllerRemoteApp)
+        sprintf(g_LastEvent, "Controller connected (%s)", currentDateTime().c_str());
+    else
+        sprintf(g_LastEvent, "Remote App controller connected (%s)", currentDateTime().c_str());
 }
 
 static void DisconnectHandler (CIwGameControllerHandle* data, void* userdata)
 {
-    sprintf(g_LastEvent, "Controller disconnected (%s)", currentDateTime().c_str());
+    if (g_controllerRemoteApp && (CIwGameController*)userdata == g_controllerRemoteApp)
+    {
+        if (((CIwGameControllerMarmaladeRemote*)g_controllerRemoteApp)->Connect(g_dontBroadcast, "IwGameController Example"))
+        {
+            sprintf(g_LastEvent, "RemoteApp controller disconnected, Waiting for reconnections... (%s)", currentDateTime().c_str());
+        }
+        else
+        {
+            sprintf(g_LastEvent, "RemoteApp controller disconnected, failed to restart (%s)", currentDateTime().c_str());
+        }
+    }
+    else
+        sprintf(g_LastEvent, "Controller disconnected (%s)", currentDateTime().c_str());
+}
+
+int32 AlertCallback(void* systemData, void* userData)
+{
+    s3eDialogUnRegister(S3E_DIALOG_FINISHED, AlertCallback);
+
+    if (g_controllerRemoteApp)
+    {
+        g_InMenu = 0;
+        g_controllerRemoteApp->SetIgnoreTimeouts(false);
+    }
+    return 0;
 }
 
 static void PauseHandler (CIwGameControllerHandle* data, void* userdata)
 {
-    sprintf(g_LastEvent, "Pause pressed (%s)", currentDateTime().c_str());
+    if (g_controllerRemoteApp && (CIwGameController*)userdata == g_controllerRemoteApp)
+        sprintf(g_LastEvent, "Remote app pause pressed (%s)", currentDateTime().c_str());
+    else
+        sprintf(g_LastEvent, "Controller pause pressed (%s)", currentDateTime().c_str());
+
+    // Showing a modal dialog as an example of where the game might block and cause
+    // a remote app to timeout and disconnect due to not callign StartFrame
+    // Game should avoid doing that, but alternatively, we can tell the remote
+    // to temporarily assume it's still connected
+
+    s3eDialogRegister(S3E_DIALOG_FINISHED, AlertCallback, NULL);
+
+    s3eDialogAlertInfo info;
+    info.m_Button[0] = "Back to Game";
+    info.m_Button[1] = NULL;
+    info.m_Title = "Simple Menu";
+    info.m_Message = "Keeping any remote app connection live even if app would normally time out...";
+
+    if (g_controllerRemoteApp)
+        g_controllerRemoteApp->SetIgnoreTimeouts(true, true);
+        
+    s3eDialogAlertBox(&info);
+    g_InMenu = 1;
 }
 
 static int32 keyHandler(void* sys, void*)
@@ -119,20 +178,11 @@ int main()
 
     s3eKeyboardRegister(S3E_KEYBOARD_KEY_EVENT, keyHandler, NULL); // for key vs controller comparison on Android
 
-
-    // Simple test connection over direct IP address
-    // For now, this isnt even used as we are only listening (from any address) for data, so any value is fine
-    char targetIP[50]; //An IP string max length = 45
-    //SocketAddress targetAddress;
-    bool usingRemote = true;
-    if (s3eConfigGetString("GameController", "UseWifiRemote", targetIP) == S3E_RESULT_ERROR)
-        usingRemote = false;
-    /*else
-    {
-        targetAddress = SocketAddress(targetIP, CIwGameControllerMarmaladeRemote::MARMALADE_REMOTE_PORT);
-    }*/
-
-    CIwGameController* controller;
+    // Connection setup for Wifi remote app backend
+    int usingRemote = 0;
+    s3eConfigGetInt("GameController", "AllowWifiRemoteAppControllers", &usingRemote);
+    s3eConfigGetInt("GameController", "AcceptAnyRemoteConnection", &g_dontBroadcast);
+    
     if (usingRemote)
     {
         // Get host IP address of this device (creates a socket, does a query, closes socket)
@@ -141,33 +191,49 @@ int main()
         usingRemote = GetPrimaryAddr(localAddr);
         if (usingRemote)
         {
-            char localAddrString[50];
+            char localAddrString[SOCKETSUDP_IP_ADDRESS_MAX_LENGTH];
             sprintf(localAddrString, inet_ntoa(localAddr));
             IwTrace(GAME_CONTROLLER, ("Local address: %s", localAddrString));
 
             if (usingRemote)
             {
-                controller = new CIwGameControllerMarmaladeRemote();
-                usingRemote = ((CIwGameControllerMarmaladeRemote*)controller)->Connect();
-                if (!usingRemote)
-                    delete controller;
+                g_controllerRemoteApp = new CIwGameControllerMarmaladeRemote();
+                printf("STARTING CONNECT....\n");
+                g_controllerRemoteApp->SetConnectTimeout(10.0); // big timeouts for easier debug build testing
+                g_controllerRemoteApp->SetKeepAliveTimeout(15.0);
+
+                usingRemote = ((CIwGameControllerMarmaladeRemote*)g_controllerRemoteApp)->Connect(g_dontBroadcast, "IwGameController Example");
+                if (usingRemote)
+                {
+                    g_controllerRemoteApp->SetConnectCallback(ConnectHandler, g_controllerRemoteApp);
+                    g_controllerRemoteApp->SetDisconnectCallback(DisconnectHandler, g_controllerRemoteApp);
+                    g_controllerRemoteApp->SetPauseCallback(PauseHandler, g_controllerRemoteApp);
+                    g_controllerRemoteApp->SetButtonCallback(ButtonHandler, g_controllerRemoteApp);
+                    sprintf(g_LastEvent, "Waiting for remote connection... (%s)", currentDateTime().c_str());
+                }
+                else
+                {
+                    delete g_controllerRemoteApp;
+                    g_controllerRemoteApp = NULL;
+                }
             }
         }
     }
 
-    if (!usingRemote)
-        controller = IwGameController::Create();
+    // Try to get a non-remote-app controller as well
+    g_controller = IwGameController::Create();
 
-	CIwGameControllerHandle* controllerHandle = NULL;
-    
-    if (controller)
+    if (g_controller)
     {
-        controller->SetConnectCallback(ConnectHandler, NULL);
-        controller->SetDisconnectCallback(DisconnectHandler, NULL);
-        controller->SetPauseCallback(PauseHandler, NULL);
-        controller->SetButtonCallback(ButtonHandler, NULL);
-
+        g_controller->SetConnectCallback(ConnectHandler, g_controller);
+        g_controller->SetDisconnectCallback(DisconnectHandler, g_controller);
+        g_controller->SetPauseCallback(PauseHandler, g_controller);
+        g_controller->SetButtonCallback(ButtonHandler, g_controller);
     }
+    
+    CIwGameControllerHandle* controllerHandle = NULL; // this will be used by regular and remote app instances
+    
+    // ---- Main loop ----
     
     while (!s3eDeviceCheckQuitRequest())
     {
@@ -186,21 +252,32 @@ int main()
         int listStartY;
         int maxY = y;
 
-		if (!controller)
+		if (!g_controller && !g_controllerRemoteApp)
 		{
 			s3eDebugPrintf(x, y, 1, "No controller extension available :(");
 			y += lineHeight;
 		}
 		else
 		{
-			s3eDebugPrint(x, y, "Please mash controller number 1 (and 2)!", 1);
+			s3eDebugPrintf(x, y, 1, "Please mash controller(s) - max supported is %d", MAX_CONTROLLERS_TESTED);
 			y += lineHeight;
 
-			controller->StartFrame();
+            if (g_controller)
+                g_controller->StartFrame();
+            
+            // This is to give 50 frames of data sending when menu is shown, then
+            // app gets no data to see if it survives
+            if (g_InMenu > 0)
+                g_InMenu++;
 
-			int numControllers = controller->GetControllerCount();
+            if (g_controllerRemoteApp && g_InMenu < 50)
+                g_controllerRemoteApp->StartFrame();
+            
+            int numRemoteAppControllers = g_controllerRemoteApp ? g_controllerRemoteApp->GetControllerCount() : 0;
+            int numRealControllers = g_controller ? g_controller->GetControllerCount() : 0;
+			int numControllers = numRemoteAppControllers + numRealControllers;
 
-			s3eDebugPrintf(x, y, 1, "Controllers found: %d", numControllers);
+			s3eDebugPrintf(x, y, 1, "Controllers found: %d real | %d remote apps", numRealControllers, numRemoteAppControllers);
 			y += lineHeight;
             
             int yStart = y;
@@ -208,14 +285,26 @@ int main()
 
             // Realistically you wouldn't do this controller discovery on every loop!
 			int n = 0;
-			while (n < numControllers && n < 2) //just showing two atm to fit on most screens..
+			while (n < numControllers && n < MAX_CONTROLLERS_TESTED) //just showing two atm to fit on most screens..
 			{
                 y = yStart;
+                bool usingRemote = false;
+                CIwGameController* controller = NULL;
                 
-				controllerHandle = controller->GetControllerByIndex(n);
+                if (n < numRealControllers)
+                {
+                    controller = g_controller;
+                    controllerHandle = g_controller->GetControllerByIndex(n);
+                }
+                else
+                {
+                    usingRemote = true;
+                    controller = g_controllerRemoteApp;
+                    controllerHandle = g_controllerRemoteApp->GetControllerByIndex(n-numRealControllers);
+                }
                 
                 // No handle is currently valid for platforms where only one controller is supported
-                // TODO: might want to force those to return handle = 1 or similar.
+                // TODO: might want to force those to return handle = some generated unique value (e.g. address).
                 if (controllerHandle || numControllers == 1 && controller->GetMaxControllers() == 1)
                 {
                     s3eDebugPrintf(x, y, 1, "Using controller at index: %d", n);
@@ -279,7 +368,7 @@ int main()
             for (int j = g_NumButtons-1; j >= 0; j--)
             {
                 Button::eButton button = g_ButtonsPresesed[j];
-                controller->GetButtonDisplayName(name, button, true);
+                CIwGameController::GetButtonDisplayName(name, button, true);
                 s3eDebugPrintf(x, y, 1, "Button: %s (%d)", name, button);
 
                 y += lineHeight;
@@ -298,7 +387,7 @@ int main()
             for (int k = g_NumButtonsReleased-1; k >= 0; k--)
             {
                 Button::eButton button = g_ButtonsReleased[k];
-                controller->GetButtonDisplayName(name, button, true);
+                CIwGameController::GetButtonDisplayName(name, button, true);
 
                 s3eDebugPrintf(x, y, 1, "Button: %s (%d)", name, button);
 
@@ -369,6 +458,10 @@ int main()
         // Sleep for 0ms to allow the OS to process events etc.
         s3eDeviceYield(0);
     }
+
+    delete g_controller;
+    if (g_controllerRemoteApp)
+        delete g_controllerRemoteApp; // calls Disconnect()
 
     return 0;
 }

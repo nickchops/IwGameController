@@ -1,0 +1,28 @@
+# appletv: "10.79.2.224"
+# win: "10.79.3.118"
+# sony android: "10.79.2.195" 
+
+[ControllerRemote]
+#TargetIPAddress="1.2.3.4"
+#NoConnectDebugUI=0
+#DebugDisplay=1
+KeepAliveTimeout=10000
+MenuIsQuit=1
+
+#tv->android
+#TargetIPAddress="10.79.2.195"
+
+#android->tv
+#{OS=ANDROID}
+#TargetIPAddress="10.79.3.118"
+
+[2D]
+MaxBatch=3276
+
+
+[S3E]
+MemSize=50000000
+DispFixRot=FixedPortrait
+
+[GX]
+DataCacheSize=200000

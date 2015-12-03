@@ -3,7 +3,6 @@
 
 namespace SocketsUDP
 {
-    
     //SocketAddress class implementation
 
     SocketAddress::SocketAddress()
@@ -12,15 +11,18 @@ namespace SocketsUDP
         m_address = 0;
 
         m_sockaddr = NULL;
+        IwTrace(SOCKETUDP, ("end def constructor"));
     }
 
     SocketAddress::SocketAddress(const SocketAddress& other)
     {
+        IwTrace(SOCKETUDP, ("copy sconstruct"));
         this->m_port = other.m_port;
         this->m_address = other.m_address;
 
         m_sockaddr = new sockaddr_in;
         *m_sockaddr = *other.m_sockaddr;
+        IwTrace(SOCKETUDP, ("copy sconstruct done"));
     }
 
     SocketAddress::SocketAddress(const char* addressString, unsigned short port)
@@ -71,18 +73,30 @@ namespace SocketsUDP
 
     SocketAddress::SocketAddress(sockaddr_in* other)
     {
+        IwTrace(SOCKETUDP, ("other construct"));
         m_sockaddr = new sockaddr_in;
         *m_sockaddr = *other;
         m_address = ntohl(other->sin_addr.s_addr);
         m_port = ntohs(other->sin_port);
+        IwTrace(SOCKETUDP, ("other construct end"));
     }
 
     SocketAddress::~SocketAddress()
     {
-        if (this->m_sockaddr)
-            delete this->m_sockaddr;
+        IwTrace(SOCKETUDP, ("destructor"));
+        if (m_sockaddr)
+        {
+            delete m_sockaddr;
+            m_sockaddr = NULL;
+            IwTrace(SOCKETUDP, ("destructor NULLing"));
+        }
     }
-
+    
+    bool SocketAddress::IsValid()
+    {
+        return this->m_sockaddr != NULL;
+    }
+    
     //TODO: this is terrible code! We should get rid of the new call
     //on the address. I used it to allo some pointer passing but bad idea really!
     //This funciton will clean the class up in its on the stack
@@ -106,9 +120,6 @@ namespace SocketsUDP
 
     bool SocketAddress::GetAddressString(char* output)
     {
-        char testStr[100] = { 0 };
-        inet_ntop(AF_INET, (void*)&(GetAddress()->sin_addr), testStr, INET_ADDRSTRLEN);
-
         return inet_ntop(AF_INET, (void*)&(GetAddress()->sin_addr), output, INET_ADDRSTRLEN) != NULL;
     }
 
@@ -124,16 +135,30 @@ namespace SocketsUDP
 
     SocketAddress & SocketAddress::operator=(const SocketAddress &other)
     {
+        IwTrace(SOCKETUDP, ("operator="));
+
         if (this == &other)
             return *this;
+
+        IwTrace(SOCKETUDP, ("op = 1"));
 
         this->m_port = other.m_port;
         this->m_address = other.m_address;
 
+        IwTrace(SOCKETUDP, ("op = 2"));
+
         if (this->m_sockaddr)
+        {
+            IwTrace(SOCKETUDP, ("op = 3a"));
             delete this->m_sockaddr;
+            IwTrace(SOCKETUDP, ("op = 3b"));
+        }
+
+        IwTrace(SOCKETUDP, ("op = 4"));
         m_sockaddr = new sockaddr_in;
         *this->m_sockaddr = *other.m_sockaddr;
+
+        IwTrace(SOCKETUDP, ("op = 5"));
 
         return *this;
     }

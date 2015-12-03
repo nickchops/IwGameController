@@ -9,19 +9,19 @@ namespace IwGameController
     // internal callback handlers
     int32 CIwGameControllerIOS::_ConnectCallback(void *systemData, void *userData)
     {
-        NotifyConnect((CIwGameControllerHandle*)systemData);
+        ((CIwGameControllerIOS*)userData)->NotifyConnect((CIwGameControllerHandle*)systemData);
         return 1;
     }
     
 	int32 CIwGameControllerIOS::_DisconnectCallback(void *systemData, void *userData)
     {
-		NotifyDisconnect((CIwGameControllerHandle*)systemData);
+		((CIwGameControllerIOS*)userData)->NotifyDisconnect((CIwGameControllerHandle*)systemData);
         return 1;
     }
     
 	int32 CIwGameControllerIOS::_PauseCallback(void *systemData, void *userData)
     {
-		NotifyPause((CIwGameControllerHandle*)systemData);
+		((CIwGameControllerIOS*)userData)->NotifyPause((CIwGameControllerHandle*)systemData);
         return 1;
     }
     
@@ -31,9 +31,9 @@ namespace IwGameController
     {
         m_Type = Type::IOS;
         
-        s3eIOSControllerRegister(S3E_IOSCONTROLLER_CALLBACK_CONNECTED, _ConnectCallback, 0);
-        s3eIOSControllerRegister(S3E_IOSCONTROLLER_CALLBACK_DISCONNECTED, _DisconnectCallback, 0);
-        s3eIOSControllerRegister(S3E_IOSCONTROLLER_CALLBACK_PAUSE_PRESSED, _PauseCallback, 0);
+        s3eIOSControllerRegister(S3E_IOSCONTROLLER_CALLBACK_CONNECTED, _ConnectCallback, (void*)this);
+        s3eIOSControllerRegister(S3E_IOSCONTROLLER_CALLBACK_DISCONNECTED, _DisconnectCallback, (void*)this);
+        s3eIOSControllerRegister(S3E_IOSCONTROLLER_CALLBACK_PAUSE_PRESSED, _PauseCallback, (void*)this);
     }
 
     CIwGameControllerIOS::~CIwGameControllerIOS()
@@ -45,10 +45,12 @@ namespace IwGameController
 
     void CIwGameControllerIOS::StartFrame()
     {
-        if (s_ButtonCallback)
+        s3ePointerUpdate(); // needed for s3ePointer touch state -> micro cotroller DPAD_TOUCH state
+        
+        /*if (m_ButtonCallback)
         {
-            /* Can emulate events via state check... Might actuall be able to do events in IOS extension...
-            //loop through all controllers
+            // Can emulate events via state check if needed. Look like we can do events in IOS extension...
+            // Loop through all controllers here
             {
                 for (int i = 0; i < Button::MAX; i++)
                 {
@@ -59,8 +61,7 @@ namespace IwGameController
                     }
                 }
             }
-            */
-        }
+        }*/
     }
 
     CIwGameControllerHandle* CIwGameControllerIOS::GetControllerByIndex(int index)
@@ -176,8 +177,12 @@ namespace IwGameController
         case Button::RIGHT_STICK_RIGHT:
             return s3eIOSControllerGetButtonState((s3eIOSController*)handle, S3E_IOSCONTROLLER_BUTTON_RIGHT_THUMBSTICK_RIGHT);
         case Button::DPAD_TOUCH:
-            state = s3ePointerGetTouchState(0);
+            state = s3ePointerGetState(S3E_POINTER_BUTTON_RIGHTMOUSE);
             return (state & S3E_POINTER_STATE_DOWN);
+        case Button::START:
+            //back key gets pressed/released both set for a single frame on menu key events
+            //(down state is never set)
+            return (s3eKeyboardGetState(s3eKeyBack) & S3E_KEY_STATE_PRESSED);
         default:
             return false;
         }
