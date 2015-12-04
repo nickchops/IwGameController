@@ -176,9 +176,11 @@ namespace IwGameController
             return s3eIOSControllerGetButtonState((s3eIOSController*)handle, S3E_IOSCONTROLLER_BUTTON_RIGHT_THUMBSTICK_LEFT);
         case Button::RIGHT_STICK_RIGHT:
             return s3eIOSControllerGetButtonState((s3eIOSController*)handle, S3E_IOSCONTROLLER_BUTTON_RIGHT_THUMBSTICK_RIGHT);
-        case Button::DPAD_TOUCH:
-            state = s3ePointerGetState(S3E_POINTER_BUTTON_RIGHTMOUSE);
+#ifdef SDK_SUPPORTS_TVOS
+            case Button::DPAD_TOUCH:
+            state = s3ePointerGetState(S3E_POINTER_BUTTON_TOUCHPAD);
             return (state & S3E_POINTER_STATE_DOWN);
+#end
         case Button::START:
             //back key gets pressed/released both set for a single frame on menu key events
             //(down state is never set)
