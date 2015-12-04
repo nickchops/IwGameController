@@ -180,7 +180,7 @@ namespace IwGameController
             case Button::DPAD_TOUCH:
             state = s3ePointerGetState(S3E_POINTER_BUTTON_TOUCHPAD);
             return (state & S3E_POINTER_STATE_DOWN);
-#end
+#endif
         case Button::START:
             //back key gets pressed/released both set for a single frame on menu key events
             //(down state is never set)
