@@ -23,7 +23,12 @@ Currently, it supports:
   - Single controller only currently
 
 The Quick API is a  wrapper around the C++ one, with the usual shortened
-naming scheme. Quick supports all the C++ features but not the remote app yet.
+naming scheme. Quick supports all the C++ features, including the remote app
+backend. However, it currently only supports one type of controller at a time
+as it has an internal single static controller handle.
+
+The Quick API needs refactoring to allow multiple controllers. It should
+probably just wrap the CIwGameController class directly as userdata...
 
 
 Apple TV (tvOS) caveats

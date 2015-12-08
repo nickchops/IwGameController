@@ -15,6 +15,13 @@ darkishGrey = {55,55,55}
 darkGrey = {50,50,50}
 darkerGrey = {30,30,30}
 
+ useRemoteApp = io.open("useRemoteApp", "r")
+ 
+ if useRemoteApp ~= nil then
+    useRemoteApp:close()
+    useRemoteApp = true
+end
+
 function orientation()
     virtualResolution:update()
     virtualResolution:applyToScene(director:getCurrentScene())
@@ -27,11 +34,14 @@ function orientation()
         lblStickDbgL.x = leftEdge
         lblStickDbgR.x = lblStickDbgL.x + 300
         lblNumPlayers.x = leftEdge
-        lblcontrollerSelected.x = leftEdge
-        lblKeyBtns.x = leftEdge
+        lblControllerSelected.x = leftEdge
+        lblLastEvent.x = leftEdge
         
-        btnPropOn.x = leftEdge + btnPropX
-        btnPropOff.x = leftEdge + btnPropX + touchBtnW + 10
+        if lblKeyBtns then
+            lblKeyBtns.x = leftEdge
+            btnPropOn.x = leftEdge + btnPropX
+            btnPropOff.x = leftEdge + btnPropX + touchBtnW + 10
+        end
         
         touchPad.x = virtualResolution.userWinMaxX - 70
     end
@@ -46,11 +56,6 @@ controllerHandle = nil
 fontScale = 0.7
 
 -- Update event does actual controller state handling ------------------------
-
-dbg.print(gameController.axisStickLeftX)
-dbg.print(gameController.axisStickLeftY)
-dbg.print(gameController.axisStickRightX)
-dbg.print(gameController.axisStickRightY)
 
 function triggerState(triggger, pressed)
     if type(pressed) ~= "number" then
@@ -138,34 +143,62 @@ end
 
 
 -- Periodic check for new/lost controllers ------------------------------------
+-- Should use connect disconnect callbacks instead,
+-- just calling once for initial setup.
 
-function checkControllers(event)
+function checkControllers(expectedHandle)
     numControllers = gameController.getControllerCount()
 
     controllerHandle = nil
     
-    if numControllers == 1 and gameController.getMaxControllers() == 1 then
+    if numControllers == 0 then
+        controllerSelected = "none"
+    elseif numControllers == 1 and gameController.getMaxControllers() == 1 then -- for platforms with only 1 (nil) handle
         controllerSelected = 1
     else
         local n = 0
         repeat
             n = n+1
             controllerHandle = gameController.getControllerByIndex(n)
+            
+            if expectedHandle and controllerHandle ~= expectedHandle then
+                controllerHandle = nil
+            end
         until controllerHandle or n == numControllers
-
-        print(n)
-
         if controllerHandle == nil then
             controllerSelected = "none"
         else
             controllerSelected = n
-
+            
             --visually useful to show this way for TV OS!
             gameController.setProperty(controllerHandle, gameController.propertyReportsAbsoluteDPadValues, 1)
         end
     end
+    
+    lblControllerSelected.text = "Controller selected: " .. controllerSelected
+    lblNumPlayers.text = "Controllers found: " .. numControllers
 end
 
+function controllerEvent(event)
+    if event.type == "connect" then
+        checkControllers(event.controllerHandle)
+        lblLastEvent.text = "Last event: Controller connected,\n            switching to controller " .. controllerSelected
+        -- have to serach because controller cant currently tell you its index for controllerSelected value
+    elseif event.type == "disconnect" then
+        -- todo: display event message
+        checkControllers() -- switch to another controller if there is one
+        
+        if (useRemoteApp) then
+            lblLastEvent.text = "Last event: Controller disconnected,\n            waiting for new controller..."
+            gameController.connect(false, "Marm Quick Controller Example")
+        else
+            lblLastEvent.text = "Last event: Controller disconnected"
+        end
+    elseif event.type == "pause" then
+        lblLastEvent.text = "Last event: Pause/Start pressed"
+        print("pause event")
+    end
+end
 
 -- Simple buttons for key propagation -----------------------------------------
 --TODO: not showing keys yet plus need non-touch way to press buttons!
@@ -202,17 +235,38 @@ lblStickDbgL = director:createLabel({x=10, y=45, w=(appWidth/2)/fontScale, vAlig
 
 lblStickDbgR = director:createLabel({x=310, y=45, w=(appWidth/2)/fontScale, vAlignment="bottom", text="Right Stick: (0.00000,0.00000)", color=color.white, xScale=fontScale, yScale=fontScale})
 
+lblNumPlayers = director:createLabel({x=10, y=appHeight-60, w=(appWidth-20)/fontScale, vAlignment="bottom", text="Controllers found:", color=color.white})
+
+lblControllerSelected = director:createLabel({x=10, y=appHeight-90, w=(appWidth-20)/fontScale, vAlignment="bottom", text="Controller selected:", color=color.white})
+
+lblLastEvent = director:createLabel({x=10, y=appHeight-140, w=(appWidth-20)/fontScale, h=40, vAlignment="top", text="Last event: <none>", color=color.white})
+
+
 btnPropX = 380
 
 if gameController.isSupported() then
-    gameController.init(gameController.typeIos)
+    if (useRemoteApp) then
+        useRemoteApp = gameController.init(gameController.typeMarmaladeRemote)
+        if (useRemoteApp) then
+            gameController.setConnectTimeout(10.0) --big timeouts for easier debug build testing
+            gameController.setKeepAliveTimeout(15.0)
+            gameController.connect(false, "Marm Quick Controller Example")
+            system:addEventListener("controller", controllerEvent)
+            lblLastEvent.text = "Last event: <none>\n            waiting for remote connection..."
+        end
+    end
+    
+    if not useRemoteApp then
+        gameController.init(gameController.typeAny)
+    end
+    
     lblSupported.text = "Controller API available :)"
     lblSupported.color = color.green
     system:addEventListener({"update"}, update)
     checkControllers()
-    system:addTimer(checkControllers, 5) --check for changes every 5 seconds
     
-    lblKeyBtns = director:createLabel({x=10, y=10, w=(appWidth-100)/fontScale, vAlignment="bottom", text="Generate key events? ->", color=color.white})
+    lblKeyBtns = director:createLabel({x=10, y=10, w=(appWidth-100)/fontScale, vAlignment="bottom",
+            text="Generate key events? ->", color=color.white})
     
     btnPropOn = addButton("Enable", touchKeyEventsOn, btnPropX, touchBtnH/2+10)
     btnPropOff = addButton("Disable", touchKeyEventsOff, btnPropOn.x+touchBtnW+10, btnPropOn.y)
@@ -221,9 +275,6 @@ else
     lblSupported.color = color.red
 end
 
-lblNumPlayers = director:createLabel({x=10, y=appHeight-60, w=(appWidth-20)/fontScale, vAlignment="bottom", text="Controllers found: " .. numControllers, color=color.white})
-
-lblcontrollerSelected = director:createLabel({x=10, y=appHeight-90, w=(appWidth-20)/fontScale, vAlignment="bottom", text="Controller selected: " .. controllerSelected, color=color.white})
 
 --pads and buttons to show controller state
 

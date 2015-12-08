@@ -20,6 +20,7 @@ enum
     typeAndroidAmazon,
     typeIos,
     typeDesktopHid,
+    typeMarmaladeRemote,
     typeNone
 };
 
@@ -77,15 +78,15 @@ enum
 
 enum
 {
-    typeUnknown = 0,
-    typeBasic,
-    typeExtended,
-    typeMicro,
-    typeMax
+    controllerTypeUnknown = 0,
+    controllerTypeBasic,
+    controllerTypeExtended,
+    controllerTypeMicro,
+    controllerTypeMax
 };
 
 bool isSupported();
-bool init(unsigned int type);
+bool init(unsigned int type = typeAny);
 void terminate();
 unsigned int getType();
 void startFrame();
@@ -103,6 +104,16 @@ unsigned int getControllerType(void* handle);
 bool isButtonSupported(void* handle, unsigned int button);
 bool isAxisSupported(void* handle, unsigned int axis);
 void useButtonEvents(bool enabled);
+
+//remote specific
+bool connect(bool dontBroadcast=false, const char* appName = "Unknown");
+void disconnect();
+bool isConnecting();
+bool isConnected();
+void setConnectTimeout(float seconds);
+void setKeepAliveTimeout(float seconds);
+void resetValues();
+void setIgnoreTimeouts(bool ignore, bool blockSender=false);
 
 }
 

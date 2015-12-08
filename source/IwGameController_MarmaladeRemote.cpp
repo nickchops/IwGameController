@@ -21,9 +21,9 @@ namespace IwGameController
     const char* CIwGameControllerMarmaladeRemote::KEEPCONNECT_TOKEN = "marm_keepcon";
     const char* CIwGameControllerMarmaladeRemote::IGNORETIMEOUT_TOKEN = "marm_ignore";
     const char* CIwGameControllerMarmaladeRemote::NOSEND_TOKEN = "marm_nosend";
-    
+
     // Init/term
-    
+
     CIwGameControllerMarmaladeRemote::CIwGameControllerMarmaladeRemote()
     {
         m_Type = Type::MARMALADE_REMOTE;
@@ -46,19 +46,19 @@ namespace IwGameController
         Disconnect();
     }
 
-    
+
     // -------- connection  ---------------
 
     bool CIwGameControllerMarmaladeRemote::Connect(bool dontBroadcast, const char* appName)
     {
         Disconnect();
-        
+
         for (int i = 0; i < RemoteButtonIDs::BUTTON_COUNT; i++)
             m_BtnState[i] = false;
 
         for (int i = 0; i < RemoteAxisIDs::AXIS_COUNT; i++)
             m_AxisValue[i] = 0.0;
-        
+
         if (!m_Socket.Open(CIwGameControllerMarmaladeRemote::MARMALADE_REMOTE_PORT))
             return false;
 
@@ -73,32 +73,32 @@ namespace IwGameController
             in_addr localAddr;
             if(!SocketsUDP::GetPrimaryAddr(localAddr))
                 return false;
-                
+
             char localAddrString[SOCKETSUDP_IP_ADDRESS_MAX_LENGTH];
             sprintf(localAddrString, inet_ntoa(localAddr));
-            
+
             const char* whatAmI = "Marmalade Remote Game Controller";
             const char* friendlyName = s3eDeviceGetString(S3E_DEVICE_NAME);
             char timeout[6];
             //strnprintf(timeout, )
             const char* textRecords[3] = { whatAmI, friendlyName, appName };
-            
+
             // Not all implementations handle name collisions so try to avoid clashes
             char serviceName[255];
             snprintf(serviceName, 255, "%s(%s)", CIwGameControllerMarmaladeRemote::RECEIVER_NAME, localAddrString);
-            
+
             // create a service (so remote apps can find us)
             m_Service = s3eZeroConfPublish(CIwGameControllerMarmaladeRemote::MARMALADE_REMOTE_PORT,
                                            serviceName,
                                            "_http._udp", NULL, 3, textRecords);
             if (!m_Service)
                 return false;
-        
+
             printf("STARTING ZEROCONF... service: %s\n", serviceName);
 
             m_Connecting = 1;
         }
-        
+
         return true;
     }
 
@@ -109,7 +109,7 @@ namespace IwGameController
             s3eZeroConfUnpublish(m_Service);
             m_Service = NULL;
         }
-        
+
         if (m_Socket.IsOpen())
         {
             if (m_SenderAddress.IsValid()) //UDP so not guaranteed to arrive. Sender will timeout if not.
@@ -120,22 +120,22 @@ namespace IwGameController
             m_Socket.Close();
         }
     }
-    
+
     bool CIwGameControllerMarmaladeRemote::IsConnecting()
     {
         return m_Connecting > 0;
     }
-    
+
     bool CIwGameControllerMarmaladeRemote::IsConnected()
     {
         return m_Connected;
     }
-    
+
     void CIwGameControllerMarmaladeRemote::SetConnectTimeout(float seconds)
     {
         m_ConnectTimeout = (int)(1000.0 * seconds);
     }
-    
+
     void CIwGameControllerMarmaladeRemote::SetKeepAliveTimeout(float seconds)
     {
         m_KeepAliveTimeout = (int)(1000.0 * seconds);
@@ -186,7 +186,7 @@ namespace IwGameController
 
         //TODO: send reset message to sender instead seems more useful!
     }
-    
+
     // -------- input checking functions  ---------------
 
     void CIwGameControllerMarmaladeRemote::StartFrame()
@@ -196,7 +196,7 @@ namespace IwGameController
             if (s3eTimerGetUST() - m_ConnectTime > m_ConnectTimeout)
             {
                 // -- ATTEMPTED CONNECTION FAILED (timeout), ALLOW ANOTHER SENDER TO CONNECT --
-                
+
                 m_Connecting = 1;
                 // give up and allow other remote apps to try to connect
             }
@@ -206,20 +206,20 @@ namespace IwGameController
                 // gets this back from the address it wants to connect to
                 m_Socket.SendTo(m_SenderAddress, (const char*)m_SenderAddressString,
                               strlen(m_SenderAddressString)+1);
-                
+
                 IwTrace(GAMECONTROLLER, ("Connecting to sender: %s:%d", m_SenderAddressString,
                                          m_SenderAddress.GetPort()));
             }
         }
-    
+
         int packetsRead = 0;
         char* data;
         data = new char[CIwGameControllerMarmaladeRemote::MARMALADE_REMOTE_PACKET_SIZE+1]; //+1 is standard socket behaviour - can get odd padded packets otherwise
-        
+
         while (m_Socket.IsOpen() && (m_MaxPackets == 0 || packetsRead <= m_MaxPackets))
         {
             data[0] = '\0';
-            
+
             sockaddr_in from;
             socklen_t fromLength = sizeof(from);
 
@@ -231,7 +231,7 @@ namespace IwGameController
 
             //make sure has some terminator for printing
             data[CIwGameControllerMarmaladeRemote::MARMALADE_REMOTE_PACKET_SIZE-1] = '\0';
-            
+
             packetsRead++;
 
             // Explicit disconnect request
@@ -243,7 +243,7 @@ namespace IwGameController
                 Disconnect();
                 this->NotifyDisconnect((CIwGameControllerHandle*)m_SenderAddressString);
             }
-            
+
             // Respond to a connection check from sender
             else if(strncmp(data, CIwGameControllerMarmaladeRemote::KEEPCONNECT_TOKEN, strlen(CIwGameControllerMarmaladeRemote::KEEPCONNECT_TOKEN)) == 0)
             {
@@ -263,7 +263,7 @@ namespace IwGameController
             if (m_Connecting == 1)
             {
                 IwTrace(GAMECONTROLLER, ("Have data, checkinng for connect token..."));
-                
+
                 if (sender.GetAddressString(m_SenderAddressString)) //might want to make these string check only for debug and use int addresses otherwise
                 {
                     m_SenderAddress = sender;
@@ -280,18 +280,18 @@ namespace IwGameController
                 }
                 continue;
             }
-            
+
             // only now care if connected/ing and got valid packet size
             if ((!m_Connected && m_Connecting == 0) || bytes != CIwGameControllerMarmaladeRemote::MARMALADE_REMOTE_PACKET_SIZE-1)
                 continue;
-            
+
             // assume we have valid data once its the right size and connecting = 2 for first time
             if (m_Connecting) // will be 2 for zeroconf, 3 for accepting from any sender.
             {
                 if (m_Connecting == 3)
                 {
                     IwAssert(!m_SenderAddressString[0], ("Sender address already stored on connection found when not using dontBroadcast!"));
-                    
+
                     if (!sender.GetAddressString(m_SenderAddressString))
                     {
                         IwTrace(GAMECONTROLLER, ("Failed to get sender address, cant notify connection")); //unlikley to ever happen
@@ -312,29 +312,29 @@ namespace IwGameController
                         IwTrace(GAMECONTROLLER, ("Failed to verify sender address, cant notify connection")); //unlikley to ever happen
                         continue; // try next packet
                     }
-                    
+
                     if (m_SenderAddress != sender)
                     {
                         IwTrace(GAMECONTROLLER, ("Got data from wrong sender... ignoring"));
                         continue; // try next packet
                     }
                 }
-                
+
                 // -- CONNECTION ACHIEVED --
                 IwTrace(GAMECONTROLLER, ("Notifying controller connected as first packet was received from: %s", m_SenderAddressString));
                 m_Connecting = 0;
                 m_Connected = true;
-                
+
                 if (m_Service)
                 {
                     s3eZeroConfUnpublish(m_Service);
                     m_Service = NULL;
                 }
-                
+
                 //Using this string pointer as the controller indetifier. Could use any pointer. Has side effect that you could cast and print it in game!
                 //Mixes OK with iOS handles as both are memory addresses.
                 this->NotifyConnect((CIwGameControllerHandle*)m_SenderAddressString);
-                
+
                 //this should be a real controlls data packet... so carry on and read it
             }
             else //connected
@@ -342,9 +342,9 @@ namespace IwGameController
                 if(m_SenderAddress != sender) //only allow "connected" sender
                     continue;
             }
-            
+
             m_ConnectTime = s3eTimerGetUST(); //stamp last valid packet time
-            
+
             // TODO: the true/false values ought to be 1 char of bits - currently just "0" or "1"
 
             int i = 0;
@@ -355,12 +355,12 @@ namespace IwGameController
                     // error print. if erroneous then just abandon as packet must be wrong, try next packet
                     break;
                 }
-                
+
                 if (data[i] == '1')
                 {
                     if (i == RemoteButtonIDs::START && m_BtnState[RemoteButtonIDs::START] == false)
                         this->NotifyPause((CIwGameControllerHandle*)m_SenderAddressString);
-                    
+
                     m_BtnState[i] = true;
                 }
                 else
@@ -380,7 +380,7 @@ namespace IwGameController
                 realString[CIwGameControllerMarmaladeRemote::AXIS_VALUE_LENGTH] = '\0';
 
                 m_AxisValue[j] = (float)strtod(realString, NULL) - 1.0;
-                
+
                 if (m_AxisValue[j] > 1.0 || m_AxisValue[j] < -1.0)
                     IwTrace(GAMECONTROLLER, ("WTF?!"));
 
@@ -389,7 +389,7 @@ namespace IwGameController
         }
 
         delete data;
-        
+
         // Controller always sends data even if its all zeros. After a gap, flag as not connected again.
 
         if (m_Connected)
@@ -455,34 +455,34 @@ namespace IwGameController
         return 1;
     }
 
-	int CIwGameControllerMarmaladeRemote::GetProperty(CIwGameControllerHandle* handle, Property::eProperty prop)
-	{
-		switch (prop)
-		{
-		default:
-			return -1;
-		}
-	}
+    int CIwGameControllerMarmaladeRemote::GetProperty(CIwGameControllerHandle* handle, Property::eProperty prop)
+    {
+        switch (prop)
+        {
+        default:
+            return -1;
+        }
+    }
 
-	void CIwGameControllerMarmaladeRemote::SetProperty(CIwGameControllerHandle* handle, Property::eProperty prop, int value)
-	{
-		switch (prop)
-		{
-		default:
-			break;
-		}
-	}
+    void CIwGameControllerMarmaladeRemote::SetProperty(CIwGameControllerHandle* handle, Property::eProperty prop, int value)
+    {
+        switch (prop)
+        {
+        default:
+            break;
+        }
+    }
 
-	ControllerType::eControllerType CIwGameControllerMarmaladeRemote::GetControllerType(CIwGameControllerHandle* handle)
-	{
+    ControllerType::eControllerType CIwGameControllerMarmaladeRemote::GetControllerType(CIwGameControllerHandle* handle)
+    {
         // always emulate Siri Remote for now...
-		return ControllerType::MICRO;
-	}
+        return ControllerType::MICRO;
+    }
 
     bool CIwGameControllerMarmaladeRemote::GetButtonState(CIwGameControllerHandle* handle, Button::eButton button)
     {
         // only supporting A, X and START for siri remote for now. Start === menu.
-		switch (button)
+        switch (button)
         {
         case Button::A:
             return m_BtnState[RemoteButtonIDs::A];
@@ -497,7 +497,7 @@ namespace IwGameController
         }
     }
 
-	float CIwGameControllerMarmaladeRemote::GetAxisValue(CIwGameControllerHandle* handle, Axis::eAxis axis)
+    float CIwGameControllerMarmaladeRemote::GetAxisValue(CIwGameControllerHandle* handle, Axis::eAxis axis)
     {
         switch (axis)
         {
@@ -506,14 +506,14 @@ namespace IwGameController
         case Axis::DPAD_Y:
             if ( m_AxisValue[RemoteAxisIDs::DPAD_Y] > 1 || m_AxisValue[RemoteAxisIDs::DPAD_Y] < -1)
                 IwTrace(GAMECONTROLLER, ("WTF?!"));
-                                         
+
             return m_AxisValue[RemoteAxisIDs::DPAD_Y];
         default:
             return 0.0;
         }
     }
-    
-    
+
+
     bool CIwGameControllerMarmaladeRemote::IsButtonSupported(CIwGameControllerHandle* handle, Button::eButton button)
     {
         switch (button)
@@ -524,9 +524,9 @@ namespace IwGameController
             return true;
         default:
             return false;
-        }    
+        }
     }
-    
+
     bool CIwGameControllerMarmaladeRemote::IsAxisSupported(CIwGameControllerHandle* handle, Axis::eAxis axis)
     {
         switch (axis)

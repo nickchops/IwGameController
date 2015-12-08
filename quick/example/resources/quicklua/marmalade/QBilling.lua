@@ -444,3 +444,6 @@ end
 function billing:setPurchaseType(type)
     return quick.QBilling:setPurchaseType(type)
 end
+
+
+

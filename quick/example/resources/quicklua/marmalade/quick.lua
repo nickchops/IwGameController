@@ -45,6 +45,7 @@ if ((config.debug.makePrecompiledLua == false and config.debug.useConcatenatedLu
 	dofile("quicklua/marmalade/QBrowser.lua")
 	dofile("quicklua/marmalade/QCompass.lua")
 	dofile("quicklua/marmalade/QFaceBook.lua")
+	dofile("quicklua/marmalade/QFlurry.lua")
 	dofile("quicklua/marmalade/QLocation.lua")
 	dofile("quicklua/marmalade/QWebView.lua")
 end

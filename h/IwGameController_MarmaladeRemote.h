@@ -3,7 +3,7 @@
  *
  * MarmaladeRemote Implementation of IwGameController
  */
- 
+
 #ifndef IW_GAMECONTROLLER_MARMALADEREMOTE_H
 #define IW_GAMECONTROLLER_MARMALADEREMOTE_H
 
@@ -13,7 +13,7 @@
 #include "s3eZeroConf.h"
 
 namespace IwGameController {
-    
+
     struct RemoteButtonIDs
     {
         enum eRemoteButtonIDs
@@ -36,11 +36,11 @@ namespace IwGameController {
         };
     };
 
-	class CIwGameControllerMarmaladeRemote : public CIwGameController
-	{
-    
-	private:
-		static bool m_ButtonState[Button::MAX];
+    class CIwGameControllerMarmaladeRemote : public CIwGameController
+    {
+
+    private:
+        static bool m_ButtonState[Button::MAX];
 
         // Socket to listen for incomming conections
         // Currently have unique Connect/Disconnect/IsConnected methods
@@ -62,30 +62,25 @@ namespace IwGameController {
         int m_ConnectTimeout;
         int m_KeepAliveTimeout;
 
-        // Remote-only callbacks
-        //IwGameControllerCallback         m_KeepConnectedCallback;
-        //void*                            m_KeepConnectedCallbackUserdata;
-        //void                             NotifyKeepConnected(CIwGameControllerHandle* data);
+    public:
+        CIwGameControllerMarmaladeRemote();
+        virtual ~CIwGameControllerMarmaladeRemote();
 
-	public:
-		CIwGameControllerMarmaladeRemote();
-		virtual ~CIwGameControllerMarmaladeRemote();
+        int     GetControllerCount();
+        int     GetMaxControllers();
+        int     GetProperty(CIwGameControllerHandle* handle, Property::eProperty prop);
+        void    SetProperty(CIwGameControllerHandle* handle, Property::eProperty prop, int value);
+        ControllerType::eControllerType GetControllerType(CIwGameControllerHandle* handle);
 
-		int     GetControllerCount();
-		int     GetMaxControllers();
-		int     GetProperty(CIwGameControllerHandle* handle, Property::eProperty prop);
-		void    SetProperty(CIwGameControllerHandle* handle, Property::eProperty prop, int value);
-		ControllerType::eControllerType GetControllerType(CIwGameControllerHandle* handle);
+        CIwGameControllerHandle* GetControllerByIndex(int index);
+        CIwGameControllerHandle* GetControllerByPlayer(int player);
 
-		CIwGameControllerHandle* GetControllerByIndex(int index);
-		CIwGameControllerHandle* GetControllerByPlayer(int player);
-	
-		bool    IsButtonSupported(CIwGameControllerHandle* handle, Button::eButton button);
-		bool    IsAxisSupported(CIwGameControllerHandle* handle, Axis::eAxis axis);
+        bool    IsButtonSupported(CIwGameControllerHandle* handle, Button::eButton button);
+        bool    IsAxisSupported(CIwGameControllerHandle* handle, Axis::eAxis axis);
 
-		void    StartFrame();
-		bool    GetButtonState(CIwGameControllerHandle* handle, Button::eButton button);
-		float   GetAxisValue(CIwGameControllerHandle* handle, Axis::eAxis axis);
+        void    StartFrame();
+        bool    GetButtonState(CIwGameControllerHandle* handle, Button::eButton button);
+        float   GetAxisValue(CIwGameControllerHandle* handle, Axis::eAxis axis);
 
         static const int MARMALADE_REMOTE_PORT;
         static const int MARMALADE_REMOTE_PACKET_SIZE;
@@ -99,7 +94,9 @@ namespace IwGameController {
         static const char* KEEPCONNECT_TOKEN;
         static const char* IGNORETIMEOUT_TOKEN;
         static const char* NOSEND_TOKEN;
-        
+
+        // Remote-specific functionality
+
         bool Connect(bool dontBroadcast=false, const char* appName = "Unknown");
         void Disconnect();
         bool IsConnecting();
@@ -115,7 +112,7 @@ namespace IwGameController {
         // old data queuing up if StartFrame isnt being called regularly)
         // Sender always continues sending data when ignore is set to false
         void SetIgnoreTimeouts(bool ignore, bool blockSender=false);
-	};
+    };
 
 }   // namespace IwGameController
 

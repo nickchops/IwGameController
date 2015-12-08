@@ -3,7 +3,7 @@
  *
  * DesktopHid Implementation of IwGameController
  */
- 
+
 #ifndef IW_GAMECONTROLLER_DESKTOP_HID_H
 #define IW_GAMECONTROLLER_DESKTOP_HID_H
 
@@ -12,29 +12,29 @@
 #include "IwGameController.h"
 
 namespace IwGameController {
-    
-	class CIwGameControllerDesktopHid : public CIwGameController
-	{
-	public:
-		CIwGameControllerDesktopHid();
-		virtual ~CIwGameControllerDesktopHid();
 
-		int     GetControllerCount();
-		int     GetMaxControllers();
-		int     GetProperty(CIwGameControllerHandle* handle, Property::eProperty prop);
-		void    SetProperty(CIwGameControllerHandle* handle, Property::eProperty prop, int value);
-		ControllerType::eControllerType GetControllerType(CIwGameControllerHandle* handle);
+    class CIwGameControllerDesktopHid : public CIwGameController
+    {
+    public:
+        CIwGameControllerDesktopHid();
+        virtual ~CIwGameControllerDesktopHid();
 
-		CIwGameControllerHandle* GetControllerByIndex(int index);
-		CIwGameControllerHandle* GetControllerByPlayer(int player);
+        int     GetControllerCount();
+        int     GetMaxControllers();
+        int     GetProperty(CIwGameControllerHandle* handle, Property::eProperty prop);
+        void    SetProperty(CIwGameControllerHandle* handle, Property::eProperty prop, int value);
+        ControllerType::eControllerType GetControllerType(CIwGameControllerHandle* handle);
 
-		bool    IsButtonSupported(CIwGameControllerHandle* handle, Button::eButton button);
-		bool    IsAxisSupported(CIwGameControllerHandle* handle, Axis::eAxis axis);
+        CIwGameControllerHandle* GetControllerByIndex(int index);
+        CIwGameControllerHandle* GetControllerByPlayer(int player);
 
-		void    StartFrame();
-		bool    GetButtonState(CIwGameControllerHandle* handle, Button::eButton button);
-		float   GetAxisValue(CIwGameControllerHandle* handle, Axis::eAxis axis);
-	};
+        bool    IsButtonSupported(CIwGameControllerHandle* handle, Button::eButton button);
+        bool    IsAxisSupported(CIwGameControllerHandle* handle, Axis::eAxis axis);
+
+        void    StartFrame();
+        bool    GetButtonState(CIwGameControllerHandle* handle, Button::eButton button);
+        float   GetAxisValue(CIwGameControllerHandle* handle, Axis::eAxis axis);
+    };
 
 }   // namespace IwGameController
 

@@ -29,11 +29,11 @@ namespace IwGameController
     This does not indicate if the controller is currently present.
     */
     bool IsSupported(Type::eType type = Type::ANY);
-    
+
     /**
     Creats a controller object. You can set the type explicitly or leave as
     ANY for it to pick the default for the current device.
-     
+
     @return  new controller object if it succeeds, NULL if it fails.
     */
     CIwGameController*    Create(Type::eType type = Type::ANY);

@@ -17,7 +17,7 @@ namespace IwGameController
 
     CIwGameControllerDesktopHid::~CIwGameControllerDesktopHid()
     {
-        
+
     }
 
 
@@ -29,22 +29,22 @@ namespace IwGameController
         s3eHidControllerUpdate();
     }
 
-	CIwGameControllerHandle* CIwGameControllerDesktopHid::GetControllerByIndex(int index)
-	{
-		return NULL;
-	}
+    CIwGameControllerHandle* CIwGameControllerDesktopHid::GetControllerByIndex(int index)
+    {
+        return NULL;
+    }
 
-	CIwGameControllerHandle* CIwGameControllerDesktopHid::GetControllerByPlayer(int player)
-	{
-		return NULL;
-	}
+    CIwGameControllerHandle* CIwGameControllerDesktopHid::GetControllerByPlayer(int player)
+    {
+        return NULL;
+    }
 
     int CIwGameControllerDesktopHid::GetControllerCount()
     {
-		if (s3eHidControllerIsConnected())
-			return 1;
-		else
-			return 0;
+        if (s3eHidControllerIsConnected())
+            return 1;
+        else
+            return 0;
     }
 
     int CIwGameControllerDesktopHid::GetMaxControllers()
@@ -53,23 +53,23 @@ namespace IwGameController
     }
 
 
-	int CIwGameControllerDesktopHid::GetProperty(CIwGameControllerHandle* handle, Property::eProperty prop)
-	{
-		return -1;
-	}
-
-	void CIwGameControllerDesktopHid::SetProperty(CIwGameControllerHandle* handle, Property::eProperty prop, int value)
-	{
-	}
-
-	ControllerType::eControllerType CIwGameControllerDesktopHid::GetControllerType(CIwGameControllerHandle* handle)
-	{
-		return ControllerType::UNKNOWN;
-	}
-
-	bool CIwGameControllerDesktopHid::GetButtonState(CIwGameControllerHandle* handle, Button::eButton button)
+    int CIwGameControllerDesktopHid::GetProperty(CIwGameControllerHandle* handle, Property::eProperty prop)
     {
-		// Currently only supports one controller. handle is ignored.
+        return -1;
+    }
+
+    void CIwGameControllerDesktopHid::SetProperty(CIwGameControllerHandle* handle, Property::eProperty prop, int value)
+    {
+    }
+
+    ControllerType::eControllerType CIwGameControllerDesktopHid::GetControllerType(CIwGameControllerHandle* handle)
+    {
+        return ControllerType::UNKNOWN;
+    }
+
+    bool CIwGameControllerDesktopHid::GetButtonState(CIwGameControllerHandle* handle, Button::eButton button)
+    {
+        // Currently only supports one controller. handle is ignored.
 
         switch (button)
         {
@@ -126,9 +126,9 @@ namespace IwGameController
         }
     }
 
-	float CIwGameControllerDesktopHid::GetAxisValue(CIwGameControllerHandle* handle, Axis::eAxis axis)
-	{
-		// Currently only supports one controller. handle is ignored.
+    float CIwGameControllerDesktopHid::GetAxisValue(CIwGameControllerHandle* handle, Axis::eAxis axis)
+    {
+        // Currently only supports one controller. handle is ignored.
 
         switch (axis)
         {
@@ -157,13 +157,13 @@ namespace IwGameController
             case Axis::TRIGGER_RIGHT:
                 return s3eHidControllerGetRightTrigger();
             default:
-				break;
+                break;
         }
 
-		return false;
+        return false;
     }
 
-	bool CIwGameControllerDesktopHid::IsButtonSupported(CIwGameControllerHandle* handle, Button::eButton button)
+    bool CIwGameControllerDesktopHid::IsButtonSupported(CIwGameControllerHandle* handle, Button::eButton button)
     {
         switch (button)
         {
@@ -186,11 +186,11 @@ namespace IwGameController
             case Button::SELECT:
                 return true;
         }
-        
+
         return false;
     }
-    
-	bool CIwGameControllerDesktopHid::IsAxisSupported(CIwGameControllerHandle* handle, Axis::eAxis axis)
+
+    bool CIwGameControllerDesktopHid::IsAxisSupported(CIwGameControllerHandle* handle, Axis::eAxis axis)
     {
         switch (axis)
         {
@@ -204,7 +204,7 @@ namespace IwGameController
             case Axis::TRIGGER_RIGHT:
                 return true;
         }
-        
+
         return false;
     }
 

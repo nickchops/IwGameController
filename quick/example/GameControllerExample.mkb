@@ -41,11 +41,6 @@ subprojects
 
 deployments
 {
-    #Needed to pick up controls. If already using another custom main activity,
-    #you will need to edit one of the extensions to daisy-chain off the other as
-    #only one per app is allowed
-	android-custom-activity='com.nickchops.s3eAndroidController.s3eAndroidControllerActivity'
-    
     icon="controllericon.png"
 
     ["Windows"]
@@ -58,7 +53,7 @@ deployments
 
     # Ensure subsequent options set on "Default" configuration
     ["Default"]
-    
-    # App ID for Facebook apps
+
+    # App ID for Facebook apps - comment out if facebook is not included in Quick mkfs
     android-extra-strings='(app_id,fb_app_id)'
 }
