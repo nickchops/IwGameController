@@ -34,5 +34,6 @@ deployment
     icon=icon.png
     iphone-icon-extra="icon57.png,icon72.png"
     caption="Game Remote"
-    version="1.0.0"
+    iphone-appid="com.marmalade.gamecontroller"
+    version="1.0.1"
 }
