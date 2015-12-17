@@ -698,17 +698,17 @@ int main()
     float helpHeight = Iw2DGetSurfaceHeight() - cHelpCloseButton->GetY() - padText*2;
     CLabel* cHelpBox = SetUpLabel(g_connectRoot, padText, 0, Iw2DGetSurfaceWidth() - padText, helpHeight,
         g_fontSmall, 
-        "WHAT IS MARMALADE APPLE TV MULTIPLAYER GAME CONTROLLER?\n\n"
-        "Marmalade Apple TV Multiplayer Game Controller is the new companion app that enables any iPhone, iPad or iPod touch to act as a second game controller in any compatible app for Apple TV!\n\n"
+        "WHAT IS MARMALADE MULTIPLAYER GAME CONTROLLER?\n\n"
+        "Marmalade Multiplayer Game Controller is the new companion app that enables any iPhone, iPad or iPod touch to act as a second game controller in any compatible app for Apple TV!\n\n"
         "WHAT DEVICES CAN BE USED TO RUN THE APP?\n\n"
         "Any iPhone, iPad or iPod touch with iOS 6.0 or later!\n\n"
         "WHAT ARE THE FEATURES OF THE APP?\n\n"
         "No need to buy multiple controllers to play compatible multiplayer games. All you need is your iPhone, iPad or iPod touch and this app installed! "
-        "Just launch your compatible Apple TV game; start the Marmalade Apple TV Multiplayer Game Controller app; connect to your Apple TV and you're done!\n\n"
+        "Just launch your compatible Apple TV game; start the Marmalade Multiplayer Game Controller app; connect to your Apple TV and you're done!\n\n"
         "QUICK TIPS FOR USING THE APP\n\n"
-        "Ensure you're running the Apple TV game before connecting with the Marmalade Apple TV Multiplayer Game Controller app. "
+        "Ensure you're running the Apple TV game before connecting with the Marmalade Multiplayer Game Controller app. "
         "Ensure your device (with the app installed) is on the same WiFi network as the Apple TV. "
-        "Note: Only one device with the Marmalade Apple TV Multiplayer Game Controller app installed can be used per session of game play. First device to connect will be the controller.",
+        "Note: Only one device with the Marmalade Multiplayer Game Controller app installed can be used per session of game play. First device to connect will be the controller.",
         //CColor(0x05, 0x55, 0x70, 0xff), IW_2D_FONT_ALIGN_LEFT);
         CColor(0xAA, 0xDD, 0xFF, 0xff), IW_2D_FONT_ALIGN_LEFT);
     cHelpBox->m_Y = (cHelpCloseButton->GetY() - cHelpBox->m_H)/2.0;
